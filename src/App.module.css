@@ -1,0 +1,33 @@
+.app {
+  width: 100vw;
+  height: 100vh;
+}
+
+.header {
+  background-color: #ffffff;
+  height: 224px;
+  padding: 12px 24px;
+  overflow: hidden;
+}
+
+.content {
+  background-color: #f0f0f0;
+  display: flex;
+}
+
+.display {
+  width: 70%;
+  padding: 24px;
+}
+
+.preview-current {
+  background-color: #00a;
+  width: 15%;
+  padding: 24px;
+}
+
+.preview-compare {
+  background-color: #0a0;
+  width: 15%;
+  padding: 24px;
+}
