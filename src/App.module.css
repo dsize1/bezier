@@ -1,23 +1,26 @@
 .app {
   width: 100vw;
   height: 100vh;
-}
-
-.header {
   background-color: #ffffff;
-  height: 224px;
-  padding: 12px 24px;
-  overflow: hidden;
-}
-
-.content {
-  background-color: #f0f0f0;
   display: flex;
 }
 
-.display {
+.content {
   width: 70%;
-  padding: 24px;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.display {
+  flex: 3;
+  height: 75%;
+}
+
+.controller {
+  flex: 1;
+  height: 25%;
+  padding-top: 6px;
 }
 
 .preview-current {

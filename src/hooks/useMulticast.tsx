@@ -1,9 +1,9 @@
 /* eslint-disable react-hooks/rules-of-hooks */
 import { useEffect, useState, useRef } from 'react';
 import { Subject, Observable, Subscription } from 'rxjs';
-import { pipelineFunc } from '../../types';
+import { pipelineFunc } from './types';
 
-export const useSubject = <T extends any[]>(
+const useMulticast = <T extends any[]>(
   observers: any[],
   dependency: T,
   pipeline?: pipelineFunc<T>
@@ -49,3 +49,5 @@ export const useSubject = <T extends any[]>(
     [isSubscribed, ...dependency]
   );
 }
+
+export default useMulticast;

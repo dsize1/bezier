@@ -1,7 +1,7 @@
 /*
  * @Author: your name
  * @Date: 2020-12-13 21:55:51
- * @LastEditTime: 2020-12-15 22:22:13
+ * @LastEditTime: 2020-12-18 20:57:50
  * @LastEditors: Please set LastEditors
  * @Description: In User Settings Edit
  * @FilePath: \bezier\src\components\Stage\draws.ts
@@ -10,10 +10,24 @@ import { timer, animationFrameScheduler, Observable, of, concat } from 'rxjs';
 import { scan, takeWhile, tap } from 'rxjs/operators';
 import _get from 'lodash/get';
 import utils from '../../utils';
-import { PADDING, TWO_PI, POINT_RADIUS, DUE_TIME, PERIOD } from './contants';
+import { PADDING, TWO_PI, POINT_RADIUS, DUE_TIME, PERIOD, CONTROL_POINT_RADIUS, HALF_PADDING } from './contants';
 import { IPoint } from '../../types';
 import { IStateOptions, IBezierCurvePoint } from './types';
 import { IControlPoints } from '../../models/controlPoints';
+
+const getCtxByStage = (
+  stage: React.RefObject<HTMLCanvasElement>
+): CanvasRenderingContext2D | null | undefined => {
+  return stage?.current?.getContext('2d')
+}
+
+const getPoint = (
+  origin: IPoint,
+  offsetLeft: number,
+  offsetBottom: number
+): IPoint => {
+  return [origin[0] + offsetLeft, origin[1] - offsetBottom];
+}
 
 // bezier curve
 const getPoints$ = (
@@ -55,10 +69,6 @@ const getPoints$ = (
           let [deltaTime, deltaDis] = utils.calculateBezier(percent, startPoint, endPoint, controlPoint1, controlPoint2);
           let accTime = deltaTime;
           let accDis = deltaDis;
-          if (accDis >= distance) {
-            accTime = time;
-            accDis = distance;
-          }
           const point: IBezierCurvePoint = {
             start,
             accDis,
@@ -68,58 +78,65 @@ const getPoints$ = (
         },
         [stageOptions, { start: undefined, accDis: 0, accTime: 0 }]
       ),
-      takeWhile(([,{ accTime, accDis }]) => accTime < time && accDis < distance),
+      takeWhile(([,{ accTime }]) => accTime < time),
     );
   return points$;
 }
 
-const clearCoordinates = (stageOptions: IStateOptions) => {
-  // console.log('clear');
-  const { xLen, yLen, stage } = stageOptions;
-  const canvas = stage?.current;
-  const ctx = canvas?.getContext('2d');
-  if (ctx) {
-    ctx.clearRect(PADDING, PADDING, xLen, yLen)
-  }
+const drawPoint = (
+  ctx: CanvasRenderingContext2D,
+  point: IPoint,
+  radius: number,
+  fillStyle: string
+) => {
+  const [x, y] = point;
+  ctx.beginPath();
+  ctx.moveTo(x, y);
+  ctx.fillStyle = fillStyle;
+  ctx.arc(x, y, radius, 0, TWO_PI);
+  ctx.fill();
+  ctx.closePath();
 }
 
-const drawPoint = ([stageOptions, { accTime, accDis }]: [IStateOptions, IBezierCurvePoint]) => {
+const drawBezierCurvePoint = ([stageOptions, { accTime, accDis }]: [IStateOptions, IBezierCurvePoint]) => {
   const { x0, y0, stage } = stageOptions;
-  const canvas = stage?.current;
-  const ctx = canvas?.getContext('2d');
+  const ctx = getCtxByStage(stage);
+  const point = getPoint([x0, y0], accTime, accDis);
   if (ctx) {
-    ctx.beginPath();
-    const currX = x0 + accTime;
-    const currY = y0 - accDis;
-    ctx.moveTo(currX, currY);
-    ctx.arc(currX, currY, POINT_RADIUS, 0, TWO_PI);
-    ctx.fill();
-    ctx.closePath();
+    drawPoint(ctx, point, POINT_RADIUS, '#333333');
   }
 }
 
-export const drawCoordinates = (stageOptions: IStateOptions) => {
+export const drawCoordinates = ([stageOptions, controlPonitsOptions]: [IStateOptions, IControlPoints]) => {
   const { x0, y0, xLen, yLen, stage, stageW, stageH } = stageOptions;
-  const canvas = stage?.current;
-  const ctx = canvas?.getContext('2d');
+  const { cp1x, cp1y, cp2x, cp2y } = controlPonitsOptions;
+  const ctx = getCtxByStage(stage);
   if (ctx) {
-    ctx.strokeRect(PADDING - 1, PADDING - 1, xLen + 2, yLen + 2);
-    ctx.fillText('Distance', PADDING - 18, PADDING - 6);
-    ctx.fillText('O', x0 - 12, y0 + 12);
     ctx.save();
+    ctx.fillStyle = '#f0f0f0';
+    ctx.fillRect(0, 0, stageW, stageH);
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(PADDING, PADDING + yLen, xLen, yLen);
+    ctx.fillStyle = '#333333';
+    ctx.fillText('Distance', PADDING - HALF_PADDING, PADDING + yLen - HALF_PADDING);
+    ctx.fillText('O', x0 - HALF_PADDING, y0 + HALF_PADDING);
     ctx.direction = 'rtl';
-    ctx.fillText('Time', stageW - 18, stageH - 6);
+    ctx.fillText('Time', stageW - HALF_PADDING, y0 + HALF_PADDING);
+    const ctrlPoint1 = getPoint([x0, y0], cp1x * xLen, cp1y * yLen);
+    const ctrlPoint2 = getPoint([x0, y0], cp2x * xLen, cp2y * yLen);
+    drawPoint(ctx, ctrlPoint1, CONTROL_POINT_RADIUS, '#ff5722');
+    drawPoint(ctx, ctrlPoint2, CONTROL_POINT_RADIUS, '#ff5722');
     ctx.restore();
   }
 }
 
 export const drawBezierCurve = ([stageOptions, controlPonitsOptions]: [IStateOptions, IControlPoints]) => {
   const now = Date.now();
-  const clear$ = of(stageOptions).pipe(
-    tap(clearCoordinates)
+  const clear$ = of<[IStateOptions, IControlPoints]>([stageOptions, controlPonitsOptions]).pipe(
+    tap(drawCoordinates)
   );
   const drawPoints$ = getPoints$(stageOptions, controlPonitsOptions).pipe(
-    tap(drawPoint)
+    tap(drawBezierCurvePoint)
   );
   const draw$ = concat(clear$, drawPoints$);
   draw$.subscribe({

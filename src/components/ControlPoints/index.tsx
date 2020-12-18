@@ -19,7 +19,9 @@ interface IForm extends IControlPoints {
   libaray: string;
 }
 
-function ControlPoints() {
+function ControlPoints(props: Partial<{ className: string }>) {
+  const { className } = props;
+
   const { initialPoints, points, setPoints } = useControlPoints();
   const [form] = Form.useForm<IForm>();
 
@@ -64,6 +66,7 @@ function ControlPoints() {
 
   return (
     <Form
+      className={className}
       form={form} 
       initialValues={initialPoints} 
       name="control-points" 
@@ -72,36 +75,6 @@ function ControlPoints() {
       labelCol={{ span: 8 }}
       wrapperCol={{ span: 16 }}
     >
-      <Row justify="start" >
-        <Col span={4} offset={4} >
-          <Form.Item label="贝塞尔曲线:">
-            <span>{bezierCurve}</span>
-          </Form.Item>
-        </Col>
-        <Col span={4} >
-          <Form.Item
-            name="libaray"
-            label="缓动函数"
-          >
-            <Select
-              size="small"
-              style={{ width: 200 }}
-              options={libaray}
-              optionLabelProp="label"
-              allowClear
-            />
-          </Form.Item>
-        </Col>
-        <Col span={8}>
-          <Form.Item
-            name="duration"
-            label="时间"
-            rules={[{ required: true }]}
-          >
-            <InputRange min={1000} max={10000} step={500} />
-          </Form.Item>
-        </Col>
-      </Row>
       <Row justify="start" >
         <Col span={8} offset={4} >
           <Form.Item
@@ -142,8 +115,38 @@ function ControlPoints() {
           </Form.Item>
         </Col>
       </Row>
-      <Row gutter={20} >
-        <Col offset={16} span={4} >
+      <Row justify="start" >
+        <Col span={8} offset={4} >
+          <Form.Item
+            name="libaray"
+            label="缓动函数"
+          >
+            <Select
+              size="small"
+              style={{ width: 200 }}
+              options={libaray}
+              optionLabelProp="label"
+              allowClear
+            />
+          </Form.Item>
+        </Col>
+        <Col span={8}>
+          <Form.Item
+            name="duration"
+            label="时间"
+            rules={[{ required: true }]}
+          >
+            <InputRange min={0} max={10000} step={500} />
+          </Form.Item>
+        </Col>
+      </Row>
+      <Row justify="start" >        
+        <Col span={8} offset={4} >
+          <Form.Item label="贝塞尔曲线:">
+            <span>{bezierCurve}</span>
+          </Form.Item>
+        </Col>
+        <Col offset={8} >
           <Button type="primary" htmlType="submit">
             确认
           </Button>
