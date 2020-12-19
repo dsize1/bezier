@@ -1,13 +1,13 @@
-import React, { useMemo, useEffect, useRef } from 'react';
-import { timer } from 'rxjs';
-import { throttle, filter } from 'rxjs/operators';
+import React, { useMemo, useRef } from 'react';
+import { of, concat } from 'rxjs';
+import { tap, filter } from 'rxjs/operators';
 import useResize from '../../hooks/useResize';
 import useControlPoints from '../../models/controlPoints';
+import useControlPlayer from '../../models/controlPlayer';
 import useMulticast from '../../hooks/useMulticast';
-import { drawCoordinates, drawBezierCurve } from './draws';
+import { drawCoordinates, drawBezierCurvePoint, getPoints$ } from './draws';
 import { PADDING } from './contants';
-import { IStateOptions } from './types';
-import { IControlPoints } from '../../models/controlPoints';
+import { IStateOptions, IDrawCoordinatesOptions, IDrawBezierCurveOptions } from './types';
 
 function Stage (props: Partial<{ className: string }>) {
   const { className } = props;
@@ -18,12 +18,13 @@ function Stage (props: Partial<{ className: string }>) {
   const { width, height } = useResize(containerRef.current);
 
   const { points: controlPonitsOptions } = useControlPoints();
+  const { player: controlPlayer, setPlayer: setControlPonitsPlayer } = useControlPlayer();
 
   const stageOptions: IStateOptions = useMemo(() => {
     const _width = Math.floor(width);
     const _height = Math.floor(height);
-    const axisXLength = _width - (2 * PADDING);
-    const axisYLength = (1 / 3)  * (_height - (2 * PADDING));
+    const axisXLength = Math.floor(_width - (2 * PADDING));
+    const axisYLength = Math.floor((1 / 3)  * (_height - (2 * PADDING)));
     const originX = PADDING;
     const originY = 2 * axisYLength + PADDING;
 
@@ -38,23 +39,35 @@ function Stage (props: Partial<{ className: string }>) {
     };
   }, [width, height]);
 
-  useEffect(() => {
-    drawCoordinates([stageOptions, controlPonitsOptions]);
-  }, [stageOptions, controlPonitsOptions])
-
-  const log = (...args: any[]) => {
-    console.log(...args);
+  const drawBezierCurve = ([stageOptions, controlPonits, controlPlayer]: IDrawBezierCurveOptions) => {
+    const clear$ = of<IDrawCoordinatesOptions>([stageOptions, controlPonits]).pipe(
+      tap(drawCoordinates)
+    );
+    const drawPoints$ = getPoints$(stageOptions, controlPonits, controlPlayer).pipe(
+      tap(drawBezierCurvePoint)
+    );
+    const draw$ = concat(clear$, drawPoints$);
+    draw$.subscribe({
+      complete: () => {
+        setControlPonitsPlayer({ ...controlPlayer, run: false });
+      },
+      error: () => {
+        setControlPonitsPlayer({ ...controlPlayer, run: false });
+      }
+    });
   }
 
-  useMulticast<[IStateOptions, IControlPoints]>(
-    [drawBezierCurve, log],
-    [stageOptions, controlPonitsOptions],
+  useMulticast<IDrawCoordinatesOptions>(
+    [drawCoordinates],
+    [stageOptions, controlPonitsOptions]
+  );
+
+  useMulticast<IDrawBezierCurveOptions>(
+    [drawBezierCurve],
+    [stageOptions, controlPonitsOptions, controlPlayer],
     (subject) => {
       return subject.pipe(
-        filter(([, { duration }]) => duration !== 0),
-        throttle(([, { duration }]) => {
-          return timer(duration + 100);
-        })
+        filter(([, , { run }]) => run)
       );
     }
   );

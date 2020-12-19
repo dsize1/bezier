@@ -1,0 +1,29 @@
+.compare-container {
+  position: relative;
+  height: 100%;
+}
+
+.compare-ball {
+  position: absolute;
+  display: block;
+  height: 25px;
+  width: 25px;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: royalblue;
+  border: none;
+  border-radius: 100%;
+  -webkit-border-radius: 100%;
+  -moz-border-radius: 100%;
+  -ms-border-radius: 100%;
+  -o-border-radius: 100%;
+  -webkit-transform: translateX(-50%);
+  -moz-transform: translateX(-50%);
+  -ms-transform: translateX(-50%);
+  -o-transform: translateX(-50%);
+}
+
+.compare-ball-top {
+  bottom: 100%;
+}

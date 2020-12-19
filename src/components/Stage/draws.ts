@@ -1,19 +1,20 @@
 /*
  * @Author: your name
  * @Date: 2020-12-13 21:55:51
- * @LastEditTime: 2020-12-18 20:57:50
+ * @LastEditTime: 2020-12-19 21:38:58
  * @LastEditors: Please set LastEditors
  * @Description: In User Settings Edit
  * @FilePath: \bezier\src\components\Stage\draws.ts
  */
-import { timer, animationFrameScheduler, Observable, of, concat } from 'rxjs';
-import { scan, takeWhile, tap } from 'rxjs/operators';
+import { timer, animationFrameScheduler, Observable } from 'rxjs';
+import { scan, takeWhile } from 'rxjs/operators';
 import _get from 'lodash/get';
 import utils from '../../utils';
 import { PADDING, TWO_PI, POINT_RADIUS, DUE_TIME, PERIOD, CONTROL_POINT_RADIUS, HALF_PADDING } from './contants';
 import { IPoint } from '../../types';
-import { IStateOptions, IBezierCurvePoint } from './types';
+import { IStateOptions, IBezierCurvePoint, IDrawCoordinatesOptions, IDrawCurvePointOptions } from './types';
 import { IControlPoints } from '../../models/controlPoints';
+import { IControlPlayer } from '../../models/controlPlayer';
 
 const getCtxByStage = (
   stage: React.RefObject<HTMLCanvasElement>
@@ -30,12 +31,14 @@ const getPoint = (
 }
 
 // bezier curve
-const getPoints$ = (
+export const getPoints$ = (
   stageOptions: IStateOptions,
-  controlPonitsOptions: IControlPoints
-): Observable<[IStateOptions, IBezierCurvePoint]> => {
+  controlPonits: IControlPoints,
+  controlPlayer: IControlPlayer
+): Observable<IDrawCurvePointOptions> => {
   const { xLen, yLen } = stageOptions;
-  const { cp1x, cp1y, cp2x, cp2y, duration } = controlPonitsOptions;
+  const { cp1x, cp1y, cp2x, cp2y } = controlPonits;
+  const { duration } = controlPlayer;
   const point1: IPoint = [
     utils.toFixed(cp1x * (xLen - POINT_RADIUS), 2),
     utils.toFixed(cp1y * (yLen - POINT_RADIUS), 2)
@@ -55,7 +58,7 @@ const getPoints$ = (
   // const points$ = timer(DUE_TIME, PERIOD, animationFrameScheduler)
     .pipe(
       scan(
-        (acc: [IStateOptions, IBezierCurvePoint]): [IStateOptions, IBezierCurvePoint] => {
+        (acc: IDrawCurvePointOptions): IDrawCurvePointOptions => {
           // 当前时间
           const now = Date.now();
           // 开始时间
@@ -98,7 +101,7 @@ const drawPoint = (
   ctx.closePath();
 }
 
-const drawBezierCurvePoint = ([stageOptions, { accTime, accDis }]: [IStateOptions, IBezierCurvePoint]) => {
+export const drawBezierCurvePoint = ([stageOptions, { accTime, accDis }]: IDrawCurvePointOptions) => {
   const { x0, y0, stage } = stageOptions;
   const ctx = getCtxByStage(stage);
   const point = getPoint([x0, y0], accTime, accDis);
@@ -107,7 +110,8 @@ const drawBezierCurvePoint = ([stageOptions, { accTime, accDis }]: [IStateOption
   }
 }
 
-export const drawCoordinates = ([stageOptions, controlPonitsOptions]: [IStateOptions, IControlPoints]) => {
+export const drawCoordinates = ([stageOptions, controlPonitsOptions]: IDrawCoordinatesOptions) => {
+  // console.log('reset stage');
   const { x0, y0, xLen, yLen, stage, stageW, stageH } = stageOptions;
   const { cp1x, cp1y, cp2x, cp2y } = controlPonitsOptions;
   const ctx = getCtxByStage(stage);
@@ -124,22 +128,8 @@ export const drawCoordinates = ([stageOptions, controlPonitsOptions]: [IStateOpt
     ctx.fillText('Time', stageW - HALF_PADDING, y0 + HALF_PADDING);
     const ctrlPoint1 = getPoint([x0, y0], cp1x * xLen, cp1y * yLen);
     const ctrlPoint2 = getPoint([x0, y0], cp2x * xLen, cp2y * yLen);
-    drawPoint(ctx, ctrlPoint1, CONTROL_POINT_RADIUS, '#ff5722');
+    drawPoint(ctx, ctrlPoint1, CONTROL_POINT_RADIUS, '#52c41a');
     drawPoint(ctx, ctrlPoint2, CONTROL_POINT_RADIUS, '#ff5722');
     ctx.restore();
   }
-}
-
-export const drawBezierCurve = ([stageOptions, controlPonitsOptions]: [IStateOptions, IControlPoints]) => {
-  const now = Date.now();
-  const clear$ = of<[IStateOptions, IControlPoints]>([stageOptions, controlPonitsOptions]).pipe(
-    tap(drawCoordinates)
-  );
-  const drawPoints$ = getPoints$(stageOptions, controlPonitsOptions).pipe(
-    tap(drawBezierCurvePoint)
-  );
-  const draw$ = concat(clear$, drawPoints$);
-  draw$.subscribe({
-    complete: () => console.log(now)
-  });
 }

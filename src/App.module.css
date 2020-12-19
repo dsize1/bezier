@@ -24,13 +24,11 @@
 }
 
 .preview-current {
-  background-color: #00a;
   width: 15%;
-  padding: 24px;
+  padding: 50px 12px;
 }
 
 .preview-compare {
-  background-color: #0a0;
   width: 15%;
-  padding: 24px;
+  padding: 50px 12px;
 }

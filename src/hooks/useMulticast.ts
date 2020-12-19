@@ -13,22 +13,21 @@ const useMulticast = <T extends any[]>(
   const [isSubscribed, setIsSubscribed] = useState(false);
 
   useEffect(() => {
-    let sub: Observable<T> | Subject<T> = subRef.current;
+    console.log('subscribe');
     const subscriptions: Subscription[] = [];
-    if (sub) {
-      console.log('start');
-      if (pipeline) {
-        sub = pipeline(sub);
-      }
+    if (subRef.current) {
+      let op: Observable<T> | Subject<T> = pipeline ?
+        pipeline(subRef.current) :
+        subRef.current
 
-      observers.forEach((ob) => {
-        if (typeof ob === 'function' ) {
-          subscriptions.push(sub.subscribe(ob));
+      observers.forEach((observer) => {
+        if (typeof observer === 'function' ) {
+          subscriptions.push(op.subscribe(observer));
         }
       });
       setIsSubscribed(true);
       return () => {
-        console.log('over');
+        console.log('unsubscribe');
         subscriptions.forEach((subscription) => {
           subscription.unsubscribe();
         });
@@ -41,7 +40,7 @@ const useMulticast = <T extends any[]>(
     () => {
       const sub = subRef.current;
       if (isSubscribed) {
-        console.log('deps changed')
+        console.log('deps changed', ...dependency);
         sub.next(dependency);
       }
     }, 

@@ -1,11 +1,14 @@
 import React, { useMemo } from 'react';
 import { Form, Button, Select, Row, Col } from 'antd';
+import { CopyrightTwoTone } from '@ant-design/icons';
 import InputRange from './InputRange';
 import _omit from 'lodash/omit';
 import _split from 'lodash/split';
 import _has from 'lodash/has';
+import utils from '../../utils'
 import { IControlPoints } from '../../models/controlPoints';
 import useControlPoints from '../../models/controlPoints'
+import useControlPlayer from '../../models/controlPlayer'
 
 const libaray = [
   { label: 'ease', value: '.25,.1,.25,1' },
@@ -16,59 +19,78 @@ const libaray = [
 ]
 
 interface IForm extends IControlPoints {
-  libaray: string;
+  libaray: string | undefined;
+  duration: number;
 }
 
 function ControlPoints(props: Partial<{ className: string }>) {
   const { className } = props;
 
   const { initialPoints, points, setPoints } = useControlPoints();
+  const { initialPlayer, player, setPlayer } = useControlPlayer();
   const [form] = Form.useForm<IForm>();
+  const initialFormValues = useMemo(() => {
+    return {
+      libaray: undefined,
+      duration: initialPlayer.duration,
+      ...initialPoints,
+    }
+  }, [initialPoints, initialPlayer])
 
-  const onFinish = (values: IForm) => {
-    const nextPoints = _omit(values, ['libaray']);
-    setPoints(nextPoints);
+  const onFinish = (values: IForm, run = true) => {
+    if (!player.run) {
+      const { duration, ...nextPoints } = _omit(values, ['libaray']);
+      setPoints(nextPoints);
+      setPlayer({ run, duration });
+    }
   }
 
   const onReset = () => {
-    form.setFieldsValue({
+    const formValues = {
       ...initialPoints,
+      duration: initialPlayer.duration,
       libaray: undefined
-    });
+    };
+    form.setFieldsValue(formValues);
+    onFinish(formValues, false);
   }
 
-  const onFormChange = (changedValues: any, allValues: IForm) => {
+  const onFormChange = (changedValues: Partial<IForm>, allValues: IForm) => {
     if (_has(changedValues, 'libaray')) {
       if (changedValues.libaray === undefined) {
         onReset();
       } else {
         const [cp1x, cp1y, cp2x, cp2y] = _split(changedValues.libaray, ',');
-        form.setFieldsValue({
+        const formValues = {
+          duration: allValues.duration,
           libaray: changedValues.libaray,
           cp1x: Number(cp1x),
           cp1y: Number(cp1y),
           cp2x: Number(cp2x),
           cp2y: Number(cp2y)
-        });
+        };
+        form.setFieldsValue(formValues);
+        onFinish(formValues, false);
       }
     } else {
-      form.setFieldsValue({
+      const formValues = {
         ...allValues,
         libaray: undefined
-      });
+      };
+      form.setFieldsValue(formValues);
+      onFinish(formValues, false);
     }
   }
 
   const bezierCurve = useMemo(() => {
-    const { cp1x, cp1y, cp2x, cp2y } = points;
-    return `cubic-bezier(${cp1x},${cp1y},${cp2x},${cp2y})`
+    return utils.p2CubicBezier(points);
   }, [points]);
 
   return (
     <Form
       className={className}
       form={form} 
-      initialValues={initialPoints} 
+      initialValues={initialFormValues} 
       name="control-points" 
       onFinish={onFinish} 
       onValuesChange={onFormChange}
@@ -76,47 +98,67 @@ function ControlPoints(props: Partial<{ className: string }>) {
       wrapperCol={{ span: 16 }}
     >
       <Row justify="start" >
-        <Col span={8} offset={4} >
+        <Col span={10} offset={4} >
           <Form.Item
             name="cp1x"
-            label="控制点X1"
+            label={
+              <span>
+                控制点X1
+                <CopyrightTwoTone twoToneColor="#52c41a" style={{marginLeft: 6}} />
+              </span>
+            }
             rules={[{ required: true }]}
           >
             <InputRange min={0} max={1} step={0.01} />
           </Form.Item>
         </Col>
-        <Col span={8}>
+        <Col span={10}>
           <Form.Item
             name="cp1y"
-            label="控制点Y1"
+            label={
+              <span>
+                控制点Y1
+                <CopyrightTwoTone twoToneColor="#52c41a" style={{marginLeft: 6}} />
+              </span>
+            }
             rules={[{ required: true }]}
           >
-            <InputRange min={-0.5} max={1.5} step={0.01} />
+            <InputRange min={-1} max={2} step={0.01} />
           </Form.Item>
         </Col>
       </Row>
       <Row justify="start" >
-        <Col span={8} offset={4} >
+        <Col span={10} offset={4} >
           <Form.Item
             name="cp2x"
-            label="控制点X2"
+            label={
+              <span>
+                控制点X2
+                <CopyrightTwoTone twoToneColor="#ff5722" style={{marginLeft: 6}} />
+              </span>
+            }
             rules={[{ required: true }]}
           >
             <InputRange min={0} max={1} step={0.01} />
           </Form.Item>
         </Col>
-        <Col span={8}>
+        <Col span={10}>
           <Form.Item
             name="cp2y"
-            label="控制定Y2"
+            label={
+              <span>
+                控制定Y2
+                <CopyrightTwoTone twoToneColor="#ff5722" style={{marginLeft: 6}} />
+              </span>
+            }
             rules={[{ required: true }]}
           >
-            <InputRange min={-0.5} max={1.5} step={0.01} />
+            <InputRange min={-1} max={2} step={0.01} />
           </Form.Item>
         </Col>
       </Row>
       <Row justify="start" >
-        <Col span={8} offset={4} >
+        <Col span={10} offset={4} >
           <Form.Item
             name="libaray"
             label="缓动函数"
@@ -130,29 +172,31 @@ function ControlPoints(props: Partial<{ className: string }>) {
             />
           </Form.Item>
         </Col>
-        <Col span={8}>
+        <Col span={10}>
           <Form.Item
             name="duration"
             label="时间"
             rules={[{ required: true }]}
           >
-            <InputRange min={0} max={10000} step={500} />
+            <InputRange min={initialPlayer.duration} max={10000} step={500} />
           </Form.Item>
         </Col>
       </Row>
       <Row justify="start" >        
-        <Col span={8} offset={4} >
-          <Form.Item label="贝塞尔曲线:">
+        <Col span={10} offset={4} >
+          <Form.Item label="贝塞尔曲线">
             <span>{bezierCurve}</span>
           </Form.Item>
         </Col>
-        <Col offset={8} >
-          <Button type="primary" htmlType="submit">
-            确认
-          </Button>
-          <Button style={{ marginLeft: 12 }} htmlType="button" onClick={onReset}>
-            重置
-          </Button>
+        <Col span={10} >
+          <Form.Item>
+            <Button type="primary" htmlType="submit">
+              开始
+            </Button>
+            <Button style={{ marginLeft: 12 }} htmlType="button" onClick={onReset}>
+              重置
+            </Button>
+          </Form.Item>
         </Col>
       </Row>
     </Form>
