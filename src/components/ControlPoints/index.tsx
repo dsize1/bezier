@@ -98,7 +98,7 @@ function ControlPoints(props: Partial<{ className: string }>) {
       wrapperCol={{ span: 16 }}
     >
       <Row justify="start" >
-        <Col span={10} offset={4} >
+        <Col span={10}>
           <Form.Item
             name="cp1x"
             label={
@@ -128,7 +128,7 @@ function ControlPoints(props: Partial<{ className: string }>) {
         </Col>
       </Row>
       <Row justify="start" >
-        <Col span={10} offset={4} >
+        <Col span={10}>
           <Form.Item
             name="cp2x"
             label={
@@ -158,7 +158,7 @@ function ControlPoints(props: Partial<{ className: string }>) {
         </Col>
       </Row>
       <Row justify="start" >
-        <Col span={10} offset={4} >
+        <Col span={10}>
           <Form.Item
             name="libaray"
             label="缓动函数"
@@ -183,12 +183,12 @@ function ControlPoints(props: Partial<{ className: string }>) {
         </Col>
       </Row>
       <Row justify="start" >        
-        <Col span={10} offset={4} >
+        <Col span={10}>
           <Form.Item label="贝塞尔曲线">
             <span>{bezierCurve}</span>
           </Form.Item>
         </Col>
-        <Col span={10} >
+        <Col span={10} offset={4} >
           <Form.Item>
             <Button type="primary" htmlType="submit">
               开始

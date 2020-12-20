@@ -12,7 +12,7 @@ export interface IStageViewProps {
   height: number;
 }
 
-export interface IStateOptions {
+export interface IStageOptions {
   x0: number;
   y0: number;
   xLen: number;
@@ -22,8 +22,8 @@ export interface IStateOptions {
   stage: React.RefObject<HTMLCanvasElement>;
 }
 
-export type IDrawCoordinatesOptions = [IStateOptions, IControlPoints]
+export type IDrawCoordinatesOptions = [IStageOptions, IControlPoints]
 
-export type IDrawCurvePointOptions = [IStateOptions, IBezierCurvePoint];
+export type IDrawCurvePointOptions = [IStageOptions, IBezierCurvePoint];
 
-export type IDrawBezierCurveOptions = [IStateOptions, IControlPoints, IControlPlayer]
+export type IDrawBezierCurveOptions = [IStageOptions, IControlPoints, IControlPlayer]

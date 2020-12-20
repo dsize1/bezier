@@ -38,6 +38,7 @@ const useMulticast = <T extends any[]>(
 
   useEffect(
     () => {
+      // todo 各dependency产生observable
       const sub = subRef.current;
       if (isSubscribed) {
         console.log('deps changed', ...dependency);

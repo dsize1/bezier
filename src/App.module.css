@@ -6,7 +6,7 @@
 }
 
 .content {
-  width: 70%;
+  width: 80vw;
   height: 100vh;
   display: flex;
   flex-direction: column;
@@ -14,21 +14,38 @@
 
 .display {
   flex: 3;
-  height: 75%;
+  height: 60%;
+  background-color: #f0f0f0;
 }
 
 .controller {
-  flex: 1;
-  height: 25%;
+  flex: 2;
+  height: 40%;
   padding-top: 6px;
+  background-color: #9acd3266;
+  overflow: auto;
+  display: flex;
+  flex-wrap: nowrap;
+  flex-direction: column;
+  justify-content: center;
 }
 
 .preview-current {
-  width: 15%;
-  padding: 50px 12px;
+  width: 10vw;
+  padding: 0 12px;
+  background-color: #d8709366;
+  display: flex;
+  flex-wrap: nowrap;
+  flex-direction: column;
+  justify-content: center;
 }
 
 .preview-compare {
-  width: 15%;
-  padding: 50px 12px;
+  width: 10vw;
+  padding: 0 12px;
+  background-color: #4169e166;
+  display: flex;
+  flex-wrap: nowrap;
+  flex-direction: column;
+  justify-content: center;
 }

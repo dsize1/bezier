@@ -7,7 +7,7 @@ import useControlPlayer from '../../models/controlPlayer';
 import useMulticast from '../../hooks/useMulticast';
 import { drawCoordinates, drawBezierCurvePoint, getPoints$ } from './draws';
 import { PADDING } from './contants';
-import { IStateOptions, IDrawCoordinatesOptions, IDrawBezierCurveOptions } from './types';
+import { IStageOptions, IDrawCoordinatesOptions, IDrawBezierCurveOptions } from './types';
 
 function Stage (props: Partial<{ className: string }>) {
   const { className } = props;
@@ -20,7 +20,7 @@ function Stage (props: Partial<{ className: string }>) {
   const { points: controlPonitsOptions } = useControlPoints();
   const { player: controlPlayer, setPlayer: setControlPonitsPlayer } = useControlPlayer();
 
-  const stageOptions: IStateOptions = useMemo(() => {
+  const stageOptions: IStageOptions = useMemo(() => {
     const _width = Math.floor(width);
     const _height = Math.floor(height);
     const axisXLength = Math.floor(_width - (2 * PADDING));

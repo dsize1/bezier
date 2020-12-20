@@ -4,9 +4,9 @@ import utils from '../../utils'
 import useControlPoints from '../../models/controlPoints'
 import useControlPlayer from '../../models/controlPlayer'
 import { DUE_TIME } from '../Stage/contants';
-import styles from './styles.module.css';
+import styles from './compare.module.css';
 
-const getCls = utils.getStyleCls(styles, 'compare');
+const getCls = utils.getStyleCls(styles);
 
 function Compare() {
   const [isTop, setIsTop] = useState(false);
