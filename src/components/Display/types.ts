@@ -1,15 +1,12 @@
+import { IPoint } from '../../types';
 import { IControlPoints } from '../../models/controlPoints';
 import { IControlPlayer } from '../../models/controlPlayer';
 
 export interface IDisplayStageOptions {
-  x0: number;
-  y0: number;
   stageW: number;
   stageH: number;
-  xD: number;
-  yD: number;
-  xLen: number;
-  yLen: number;
+  startPoint: IPoint;
+  endPoint: IPoint;
   stage: React.RefObject<HTMLCanvasElement>
 };
 

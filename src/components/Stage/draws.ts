@@ -1,7 +1,7 @@
 /*
  * @Author: your name
  * @Date: 2020-12-13 21:55:51
- * @LastEditTime: 2020-12-20 23:54:39
+ * @LastEditTime: 2020-12-21 23:26:29
  * @LastEditors: Please set LastEditors
  * @Description: In User Settings Edit
  * @FilePath: \bezier\src\components\Stage\draws.ts
@@ -60,13 +60,11 @@ export const getPoints$ = (
           let percent = diff / duration;
           // console.log('percent', percent);
           percent = percent > 1 ? 1 : percent;
-          let [deltaTime, deltaDis] = utils.calculateBezier(percent, startPoint, endPoint, controlPoint1, controlPoint2);
-          let accTime = deltaTime;
-          let accDis = deltaDis;
+          const { deltaT, deltaD } = utils.calculateBezier(percent, startPoint, endPoint, controlPoint1, controlPoint2);
           const point: IBezierCurvePoint = {
             start,
-            accDis,
-            accTime
+            accDis: deltaD,
+            accTime: deltaT
           };
           return [stageOptions, point];
         },

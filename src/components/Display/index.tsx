@@ -1,6 +1,6 @@
 import React, { useMemo, useRef, useState } from 'react';
 import _isNil from 'lodash/isNil';
-import { tap, filter } from 'rxjs/operators';
+import { tap, filter, zipAll } from 'rxjs/operators';
 import useResize from '../../hooks/useResize';
 import utils from '../../utils';
 import useControlPoints from '../../models/controlPoints';
@@ -13,7 +13,7 @@ import styles from './display.module.css';
 
 const getCls = utils.getStyleCls(styles);
 
-const BALL_RADIUS = 25;
+const BALL_RADIUS = 12.5;
 
 function Display() {
   const [isTop, setIsTop] = useState<boolean>(false);
@@ -30,19 +30,15 @@ function Display() {
     const _height = Math.floor(height);
     const originX = _width / 2;
     const originY = isTop ?
-      BALL_RADIUS / 2 :
-      _height - (BALL_RADIUS / 2);
-    const destinationX = originX;
-    const destinationY = !isTop ?
-      BALL_RADIUS / 2 :
-      _height - (BALL_RADIUS / 2);
+      BALL_RADIUS :
+      _height - BALL_RADIUS;
+    const endX = originX;
+    const endY = !isTop ?
+      BALL_RADIUS:
+      _height - BALL_RADIUS;
     return {
-      x0: originX,
-      y0: originY,
-      xD: destinationX,
-      yD: destinationY,
-      xLen: _width,
-      yLen: _height,
+      startPoint: [originX, originY],
+      endPoint: [endX, endY],
       stageW: _width,
       stageH: _height,
       stage: canvasRef
@@ -50,29 +46,21 @@ function Display() {
   }, [width, height, isTop]);
 
   const drawBallAction = ([stageOptions, controlPoints, controlPlayer]: IDrawBallMotionOptions) => {
-    const { x0, y0, xD, yD, xLen, yLen, stage } = stageOptions;
-    const { cp1x, cp1y, cp2x, cp2y } = controlPoints;
+    const { startPoint, endPoint, stage, stageW, stageH } = stageOptions;
     const { duration } = controlPlayer;
     const ctx = utils.getCtxByStage(stage);
-    const startPoint: IPoint = [x0, y0];
-    const endPoint: IPoint = [xD, yD];
-    const controlPoint1: IPoint = [
-      utils.toFixed(cp1x * (xLen - BALL_RADIUS), 2),
-      utils.toFixed(cp1y * (yLen - BALL_RADIUS), 2)
-    ];
-    const controlPoint2: IPoint = [
-      utils.toFixed(cp2x * (xLen - BALL_RADIUS), 2),
-      utils.toFixed(cp2y * (yLen - BALL_RADIUS), 2)
-    ];
-    const drawMotion$ = utils.getMotion$(startPoint, endPoint, controlPoint1, controlPoint2, duration, DUE_TIME)
+    const drawMotion$ = utils.getMotion$(startPoint, endPoint, controlPoints, duration, DUE_TIME)
       .pipe(
-        tap(({ x, y, prevX, prevY }) => {
-          console.log(x, y);
+        tap(({ x, y, prevX, prevY, percent }) => {
+          console.log(x, y, percent);
           if (ctx) {
+            ctx.save();
             if (!_isNil(prevX) && !_isNil(prevY) ) {
-              utils.drawPoint(ctx, [prevX, prevY], BALL_RADIUS, '#333333');
+              ctx.fillStyle = '#ffffff';
+              ctx.fillRect(0, 0, stageW, stageH);
             }
             utils.drawPoint(ctx, [x, y], BALL_RADIUS, '#333333');
+            ctx.restore();
           }
         })
       );

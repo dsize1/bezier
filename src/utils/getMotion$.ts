@@ -3,6 +3,7 @@ import { scan, takeWhile } from 'rxjs/operators';
 import _get from 'lodash/get';
 import utils from '../utils';
 import { IPoint } from '../types';
+import { IControlPoints } from '../models/controlPoints';
 
 interface IMotionValue {
   startTime: number | undefined;
@@ -16,15 +17,35 @@ interface IMotionValue {
 const PERIOD = 16;
 
 const getMotion$ = (
-  sp: IPoint,
-  ep: IPoint,
-  cp1: IPoint,
-  cp2: IPoint,
+  startPoint: IPoint,
+  endPoint: IPoint,
+  controlPoints: IControlPoints,
   duration: number,
   delay: number
 ): Observable<IMotionValue> => {
-  const orientationX = (sp[0] - ep[0]) >= 0 ? 1 : -1;
-  const orientationY = (sp[1] - ep[1]) >= 0 ? 1 : -1;
+  // todo 用相对值去计算
+  const startX: IPoint = [0, startPoint[0]];
+  const endX: IPoint = [duration, endPoint[0]];
+  const cp1X: IPoint = [
+    utils.toFixed(duration * controlPoints.cp1x, 2),
+    utils.toFixed(Math.abs(endPoint[0] - startPoint[0]) * controlPoints.cp1y, 2) 
+  ];
+  const cp2X: IPoint = [
+    utils.toFixed(duration * controlPoints.cp2x, 2),
+    utils.toFixed(Math.abs(endPoint[0] - startPoint[0]) * controlPoints.cp2y, 2) 
+  ];
+
+  const startY: IPoint = [0, startPoint[1]];
+  const endY: IPoint = [duration, endPoint[1]];
+  const cp1Y: IPoint = [
+    utils.toFixed(duration * controlPoints.cp1x, 2),
+    utils.toFixed(Math.abs(endPoint[1] - startPoint[1]) * controlPoints.cp1y, 2) 
+  ];
+  const cp2Y: IPoint = [
+    utils.toFixed(duration * controlPoints.cp2x, 2),
+    utils.toFixed(Math.abs(endPoint[1] - startPoint[1]) * controlPoints.cp2y, 2) 
+  ];
+
   const points$ = timer(delay, PERIOD, animationFrameScheduler)
     .pipe(
       scan(
@@ -38,16 +59,27 @@ const getMotion$ = (
           // 计算贝赛尔
           let percent = diff / duration;
           percent = percent > 1 ? 1 : percent;
-          const [deltaX, deltaY] = utils.calculateBezier(percent, sp, ep, cp1, cp2);
+          let x: number;
+          let y: number;
+          if (startPoint[0] === endPoint[0]) {
+            x = startPoint[0];
+          } else {
+            const resultX = utils.calculateBezier(percent, startX, endX, cp1X, cp2X);
+            x = resultX.deltaD;
+          }
+          if (startPoint[1] === endPoint[1]) {
+            y = startPoint[1];
+          } else {
+            const resultY = utils.calculateBezier(percent, startY, endY, cp1Y, cp2Y);
+            y = resultY.deltaD;
+          }
           const prevX = acc.x;
           const prevY = acc.y;
-          const x = deltaX * orientationX + sp[0];
-          const y = deltaY * orientationY + sp[1];
           return { startTime, prevX, prevY, x, y, percent };
         },
         { startTime: undefined, x: 0, y: 0, prevX: undefined, prevY: undefined, percent: 0 }
       ),
-      takeWhile(({ percent }) => percent < 1),
+      takeWhile(({ percent }) => percent < 1, true),
     );
   return points$;
 }
