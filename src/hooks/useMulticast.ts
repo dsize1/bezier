@@ -1,5 +1,6 @@
 /* eslint-disable react-hooks/rules-of-hooks */
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState } from 'react';
+import useConstant from 'use-constant';
 import { Subject, Observable, Subscription } from 'rxjs';
 import { pipelineFunc } from './types';
 
@@ -8,17 +9,17 @@ const useMulticast = <T extends any[]>(
   dependency: T,
   pipeline?: pipelineFunc<T>
 ) => {
-  const subRef = useRef(new Subject<T>());
+  const sub = useConstant(() => new Subject<T>());
 
   const [isSubscribed, setIsSubscribed] = useState(false);
 
   useEffect(() => {
-    console.log('subscribe');
-    const subscriptions: Subscription[] = [];
-    if (subRef.current) {
+    if (sub) {
+      console.log('subscribe');
+      const subscriptions: Subscription[] = [];
       let op: Observable<T> | Subject<T> = pipeline ?
-        pipeline(subRef.current) :
-        subRef.current
+        pipeline(sub) :
+        sub
 
       observers.forEach((observer) => {
         if (typeof observer === 'function' ) {
@@ -39,7 +40,6 @@ const useMulticast = <T extends any[]>(
   useEffect(
     () => {
       // todo 各dependency产生observable
-      const sub = subRef.current;
       if (isSubscribed) {
         console.log('deps changed', ...dependency);
         sub.next(dependency);

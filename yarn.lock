@@ -11390,6 +11390,11 @@ use-action@^1.0.2:
   resolved "https://registry.npm.taobao.org/use-action/download/use-action-1.0.4.tgz#51ef43d2977fcfecc6d9f66107e7d3594ddf6638"
   integrity sha1-Ue9D0pd/z+zG2fZhB+fTWU3fZjg=
 
+use-constant@^1.1.0:
+  version "1.1.0"
+  resolved "https://registry.npm.taobao.org/use-constant/download/use-constant-1.1.0.tgz#76d36a0edf16d4cc8565361f522b55da5f8f3f22"
+  integrity sha1-dtNqDt8W1MyFZTYfUitV2l+PPyI=
+
 use@^3.1.0:
   version "3.1.1"
   resolved "https://registry.npm.taobao.org/use/download/use-3.1.1.tgz#d50c8cac79a19fbc20f2911f56eb973f4e10070f"

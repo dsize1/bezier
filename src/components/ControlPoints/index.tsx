@@ -32,23 +32,21 @@ function ControlPoints(props: Partial<{ className: string }>) {
   const initialFormValues = useMemo(() => {
     return {
       libaray: undefined,
-      duration: initialPlayer.duration,
       ...initialPoints,
     }
-  }, [initialPoints, initialPlayer])
+  }, [initialPoints])
 
   const onFinish = (values: IForm, run = true) => {
     if (!player.run) {
-      const { duration, ...nextPoints } = _omit(values, ['libaray']);
+      const nextPoints = _omit(values, ['libaray']);
       setPoints(nextPoints);
-      setPlayer({ run, duration });
+      setPlayer({ run });
     }
   }
 
   const onReset = () => {
     const formValues = {
       ...initialPoints,
-      duration: initialPlayer.duration,
       libaray: undefined
     };
     form.setFieldsValue(formValues);
@@ -178,7 +176,7 @@ function ControlPoints(props: Partial<{ className: string }>) {
             label="时间"
             rules={[{ required: true }]}
           >
-            <InputRange min={initialPlayer.duration} max={10000} step={500} />
+            <InputRange min={initialPoints.duration} max={10000} step={500} />
           </Form.Item>
         </Col>
       </Row>

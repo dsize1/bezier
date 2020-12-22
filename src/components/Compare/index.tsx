@@ -15,12 +15,12 @@ function Compare() {
 
   const ballStyle = useMemo(() => {
     const propertyName = 'bottom';
-    const duration = player.duration / 1000;
+    const duration = points.duration / 1000;
     const cubicBezier = utils.p2CubicBezier(points);
     const delay = DUE_TIME / 1000;
     const transition = `${propertyName} ${duration}s ${cubicBezier} ${delay}s`;
     return { transition };
-  }, [points, player.duration]);
+  }, [points]);
 
   useEffect(() => {
     if (player.run) {

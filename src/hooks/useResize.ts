@@ -1,4 +1,5 @@
-import { useState, useEffect, useCallback, useRef } from 'react'
+import { useState, useEffect, useCallback } from 'react'
+import useConstant from 'use-constant';
 import { ResizeObserver } from '@juggle/resize-observer';
 
 const useResize = (element: Element | null) => {
@@ -14,10 +15,9 @@ const useResize = (element: Element | null) => {
     });
   }, [setHeight, setWidth]);
 
-  const roRef = useRef<ResizeObserver>(new ResizeObserver(resizeObserverCallback));
+  const ro = useConstant<ResizeObserver>(() => new ResizeObserver(resizeObserverCallback));
 
   useEffect(() => {
-    const ro = roRef.current;
     if (element && ro) {
       ro.observe(element);
     }

@@ -2,12 +2,11 @@ import { useState } from 'react';
 import { createModel } from 'hox';
 
 export interface IControlPlayer  {
-  duration: number;
   run: boolean;
 }
 
 function useControlPlayer() {
-  const initialPlayer: Readonly<IControlPlayer> = { duration: 1000, run: false };
+  const initialPlayer: Readonly<IControlPlayer> = { run: false };
   const [player, setPlayer] = useState<Readonly<IControlPlayer> >(initialPlayer);
   return {
     initialPlayer,

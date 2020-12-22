@@ -1,7 +1,7 @@
 /*
  * @Author: your name
  * @Date: 2020-12-13 21:55:51
- * @LastEditTime: 2020-12-21 23:26:29
+ * @LastEditTime: 2020-12-22 23:13:13
  * @LastEditors: Please set LastEditors
  * @Description: In User Settings Edit
  * @FilePath: \bezier\src\components\Stage\draws.ts
@@ -31,8 +31,7 @@ export const getPoints$ = (
   controlPlayer: IControlPlayer
 ): Observable<IDrawCurvePointOptions> => {
   const { xLen, yLen } = stageOptions;
-  const { cp1x, cp1y, cp2x, cp2y } = controlPoints;
-  const { duration } = controlPlayer;
+  const { cp1x, cp1y, cp2x, cp2y, duration } = controlPoints;
   const controlPoint1: IPoint = [
     utils.toFixed(cp1x * (xLen - POINT_RADIUS), 2),
     utils.toFixed(cp1y * (yLen - POINT_RADIUS), 2)
@@ -43,7 +42,6 @@ export const getPoints$ = (
   ];
   const time = xLen - POINT_RADIUS;
   const distance = yLen - POINT_RADIUS;
-  const startPoint: IPoint = [0, 0];
   const endPoint: IPoint = [time, distance];
   const points$ = timer(DUE_TIME, PERIOD, animationFrameScheduler)
   // const points$ = timer(DUE_TIME, PERIOD, animationFrameScheduler)
@@ -58,9 +56,8 @@ export const getPoints$ = (
           const diff = now - start;
           // 计算贝赛尔
           let percent = diff / duration;
-          // console.log('percent', percent);
           percent = percent > 1 ? 1 : percent;
-          const { deltaT, deltaD } = utils.calculateBezier(percent, startPoint, endPoint, controlPoint1, controlPoint2);
+          const { deltaT, deltaD } = utils.calculateBezier(percent, endPoint, controlPoint1, controlPoint2);
           const point: IBezierCurvePoint = {
             start,
             accDis: deltaD,
