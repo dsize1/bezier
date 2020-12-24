@@ -1,7 +1,7 @@
 import React from 'react';
 import ControlPoints from './components/ControlPoints';
 import Stage from './components/Stage';
-import Display from './components/Display';
+import Display from './components/Display/index';
 import Compare from './components/Compare';
 import utils from './utils';
 

@@ -10055,6 +10055,14 @@ run-queue@^1.0.0, run-queue@^1.0.3:
   dependencies:
     aproba "^1.1.1"
 
+rxjs-hooks@^0.6.2:
+  version "0.6.2"
+  resolved "https://registry.npm.taobao.org/rxjs-hooks/download/rxjs-hooks-0.6.2.tgz#08428ea10739a8da50a9b45724faf7f81156e4cf"
+  integrity sha1-CEKOoQc5qNpQqbRXJPr3+BFW5M8=
+  dependencies:
+    tslib "^1.10.0"
+    use-constant "^1.0.0"
+
 rxjs@^6.6.3:
   version "6.6.3"
   resolved "https://registry.npm.taobao.org/rxjs/download/rxjs-6.6.3.tgz?cache=0&sync_timestamp=1607305563098&other_urls=https%3A%2F%2Fregistry.npm.taobao.org%2Frxjs%2Fdownload%2Frxjs-6.6.3.tgz#8ca84635c4daa900c0d3967a6ee7ac60271ee552"
@@ -11138,7 +11146,7 @@ tsconfig-paths@^3.9.0:
     minimist "^1.2.0"
     strip-bom "^3.0.0"
 
-tslib@^1.8.1, tslib@^1.9.0:
+tslib@^1.10.0, tslib@^1.8.1, tslib@^1.9.0:
   version "1.14.1"
   resolved "https://registry.npm.taobao.org/tslib/download/tslib-1.14.1.tgz#cf2d38bdc34a134bcaf1091c41f6619e2f672d00"
   integrity sha1-zy04vcNKE0vK8QkcQfZhni9nLQA=
@@ -11390,7 +11398,7 @@ use-action@^1.0.2:
   resolved "https://registry.npm.taobao.org/use-action/download/use-action-1.0.4.tgz#51ef43d2977fcfecc6d9f66107e7d3594ddf6638"
   integrity sha1-Ue9D0pd/z+zG2fZhB+fTWU3fZjg=
 
-use-constant@^1.1.0:
+use-constant@^1.0.0, use-constant@^1.1.0:
   version "1.1.0"
   resolved "https://registry.npm.taobao.org/use-constant/download/use-constant-1.1.0.tgz#76d36a0edf16d4cc8565361f522b55da5f8f3f22"
   integrity sha1-dtNqDt8W1MyFZTYfUitV2l+PPyI=

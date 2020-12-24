@@ -1,6 +1,6 @@
 import React, { useMemo, useRef, useState } from 'react';
 import _isNil from 'lodash/isNil';
-import { tap, filter, first } from 'rxjs/operators';
+import { tap, filter } from 'rxjs/operators';
 import useResize from '../../hooks/useResize';
 import utils from '../../utils';
 import useControlPoints from '../../models/controlPoints';
@@ -60,6 +60,7 @@ function Display() {
     const { startPoint, endPoint, stage, stageW, stageH } = stageOptions;
     const { duration } = controlPoints;
     const ctx = utils.getCtxByStage(stage);
+    console.log(stage, ctx);
     const drawMotion$ = utils.getMotion$(startPoint, endPoint, controlPoints, duration, DUE_TIME)
       .pipe(
         tap(({ x, y, prevX, prevY }) => {
