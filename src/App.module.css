@@ -32,8 +32,6 @@
 
 .preview-current {
   width: 10vw;
-  padding: 0 12px;
-  background-color: #d8709366;
   display: flex;
   flex-wrap: nowrap;
   flex-direction: column;

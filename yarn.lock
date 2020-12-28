@@ -1903,6 +1903,11 @@
   dependencies:
     source-map "^0.6.1"
 
+"@types/uuid@8.3.0":
+  version "8.3.0"
+  resolved "https://registry.npm.taobao.org/@types/uuid/download/@types/uuid-8.3.0.tgz#215c231dff736d5ba92410e6d602050cce7e273f"
+  integrity sha1-IVwjHf9zbVupJBDm1gIFDM5+Jz8=
+
 "@types/webpack-sources@*":
   version "2.1.0"
   resolved "https://registry.npm.taobao.org/@types/webpack-sources/download/@types/webpack-sources-2.1.0.tgz#8882b0bd62d1e0ce62f183d0d01b72e6e82e8c10"
@@ -11455,15 +11460,23 @@ utils-merge@1.0.1:
   resolved "https://registry.npm.taobao.org/utils-merge/download/utils-merge-1.0.1.tgz#9f95710f50a267947b2ccc124741c1028427e713"
   integrity sha1-n5VxD1CiZ5R7LMwSR0HBAoQn5xM=
 
+uuid@8.3.2, uuid@^8.3.0:
+  version "8.3.2"
+  resolved "https://registry.npm.taobao.org/uuid/download/uuid-8.3.2.tgz?cache=0&sync_timestamp=1607460052228&other_urls=https%3A%2F%2Fregistry.npm.taobao.org%2Fuuid%2Fdownload%2Fuuid-8.3.2.tgz#80d5b5ced271bb9af6c445f21a1a04c606cefbe2"
+  integrity sha1-gNW1ztJxu5r2xEXyGhoExgbO++I=
+
 uuid@^3.3.2, uuid@^3.4.0:
   version "3.4.0"
   resolved "https://registry.npm.taobao.org/uuid/download/uuid-3.4.0.tgz?cache=0&sync_timestamp=1607460052228&other_urls=https%3A%2F%2Fregistry.npm.taobao.org%2Fuuid%2Fdownload%2Fuuid-3.4.0.tgz#b23e4358afa8a202fe7a100af1f5f883f02007ee"
   integrity sha1-sj5DWK+oogL+ehAK8fX4g/AgB+4=
 
-uuid@^8.3.0:
-  version "8.3.2"
-  resolved "https://registry.npm.taobao.org/uuid/download/uuid-8.3.2.tgz?cache=0&sync_timestamp=1607460052228&other_urls=https%3A%2F%2Fregistry.npm.taobao.org%2Fuuid%2Fdownload%2Fuuid-8.3.2.tgz#80d5b5ced271bb9af6c445f21a1a04c606cefbe2"
-  integrity sha1-gNW1ztJxu5r2xEXyGhoExgbO++I=
+uuidv4@^6.2.6:
+  version "6.2.6"
+  resolved "https://registry.npm.taobao.org/uuidv4/download/uuidv4-6.2.6.tgz#c37c764b578114b60bdd5460e5578d7d99383ad1"
+  integrity sha1-w3x2S1eBFLYL3VRg5VeNfZk4OtE=
+  dependencies:
+    "@types/uuid" "8.3.0"
+    uuid "8.3.2"
 
 v8-compile-cache@^2.0.3:
   version "2.2.0"

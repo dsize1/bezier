@@ -1,8 +1,11 @@
-import React, { useMemo, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
+import useConstant from 'use-constant';
 import _isNil from 'lodash/isNil';
 import { tap, filter } from 'rxjs/operators';
-import useResize from '../../hooks/useResize';
 import utils from '../../utils';
+import Canvas from '../../Canvas';
+import Circle from '../../Canvas/Shape/Circle';
+import Rectangle from '../../Canvas/Shape/Rectangle';
 import useControlPoints from '../../models/controlPoints';
 import useControlPlayer from '../../models/controlPlayer';
 import useMulticast from '../../hooks/useMulticast';
@@ -13,97 +16,44 @@ import styles from './display.module.css';
 const getCls = utils.getStyleCls(styles);
 
 const BALL_RADIUS = 12.5;
+const BALL_COLOR = '#d87093';
+const RECT_HEIGHT = 600;
+const RECT_COLOR = '#ffffff';
+
 
 function Display() {
-  const [isTop, setIsTop] = useState<boolean>(false);
   const containerRef = useRef<HTMLDivElement>(null);
-  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const canvasRef = useRef<Canvas>();
+  const rect = useConstant(() => new Rectangle({
+    x: 0,
+    y: 168.5,
+    width:
+    '100%',
+    height: RECT_HEIGHT,
+    fillStyle: RECT_COLOR 
+  }));
+  const ball = useConstant(() => new Circle({
+    x: 71.5,
+    y: 756,
+    radius: BALL_RADIUS,
+    fillStyle: BALL_COLOR
+  }));
 
-  const { width, height } = useResize(containerRef.current);
-
-  const { points: controlPoints } = useControlPoints();
-  const { player: controlPlayer } = useControlPlayer();
-
-  const stageOptions: IDisplayStageOptions = useMemo(() => {
-    const _width = Math.floor(width);
-    const _height = Math.floor(height);
-    const originX = _width / 2;
-    const originY = isTop ?
-      BALL_RADIUS :
-      _height - BALL_RADIUS;
-    const endX = originX;
-    const endY = !isTop ?
-      BALL_RADIUS:
-      _height - BALL_RADIUS;
-    return {
-      startPoint: [originX, originY],
-      endPoint: [endX, endY],
-      stageW: _width,
-      stageH: _height,
-      stage: canvasRef
-    };
-  }, [width, height, isTop]);
-
-  const drawInitialStage = ([stageOptions]: [IDisplayStageOptions]) => {
-    const { startPoint, stage, stageW, stageH } = stageOptions;
-    const ctx = utils.getCtxByStage(stage);
-    if (ctx) {
-      ctx.save();
-      ctx.fillStyle = '#ffffff';
-      ctx.fillRect(0, 0, stageW, stageH);
-      utils.drawPoint(ctx, startPoint, BALL_RADIUS, '#d87093');
-      ctx.restore();
-    }
-  }
-
-  const drawBallAction = ([stageOptions, controlPoints, controlPlayer]: IDrawBallMotionOptions) => {
-    const { startPoint, endPoint, stage, stageW, stageH } = stageOptions;
-    const { duration } = controlPoints;
-    const ctx = utils.getCtxByStage(stage);
-    console.log(stage, ctx);
-    const drawMotion$ = utils.getMotion$(startPoint, endPoint, controlPoints, duration, DUE_TIME)
-      .pipe(
-        tap(({ x, y, prevX, prevY }) => {
-          if (ctx) {
-            ctx.save();
-            if (!_isNil(prevX) && !_isNil(prevY) ) {
-              ctx.fillStyle = '#ffffff';
-              ctx.fillRect(0, 0, stageW, stageH);
-            }
-            utils.drawPoint(ctx, [x, y], BALL_RADIUS, '#d87093');
-            ctx.restore();
-          }
-        })
-      );
-    drawMotion$.subscribe({
-      complete: () => {
-        setIsTop((is) => !is);
-      },
-      error: () => {
-        setIsTop((is) => !is);
-      }
-    });
-  };
-
-  useMulticast<[IDisplayStageOptions]>(
-    [drawInitialStage],
-    [stageOptions]
-  );
-
-  useMulticast<IDrawBallMotionOptions>(
-    [drawBallAction],
-    [stageOptions, controlPoints, controlPlayer],
-    (subject) => {
-      return subject.pipe(
-        filter(([, , { run }]) => run)
+  useEffect(() => {
+    if (containerRef.current) {
+      canvasRef.current = new Canvas(
+        containerRef.current,
+        [rect, ball]
       );
     }
-  );
+    return () => {
+      canvasRef?.current?.destroy();
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
-    <div className={getCls('container')} ref={containerRef}>
-      <canvas ref={canvasRef} width={stageOptions.stageW} height={stageOptions.stageH} />
-    </div>
+    <div className={getCls('container')} ref={containerRef} />
   );
 }
 

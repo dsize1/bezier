@@ -9,7 +9,6 @@ const useResize = (element: Element | null) => {
   const resizeObserverCallback = useCallback((entries, _observer) => {
     entries.forEach((entry: { contentRect: { width: number; height: number; }; }) => {
       const { width: _width, height: _height } = entry.contentRect;
-      console.log('h,w', _width, _height);
       setHeight(_height);
       setWidth(_width);
     });
