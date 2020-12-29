@@ -33,7 +33,7 @@ function Display() {
     fillStyle: RECT_COLOR 
   }));
   const ball = useConstant(() => new Circle({
-    x: 71.5,
+    x: 84,
     y: 756,
     radius: BALL_RADIUS,
     fillStyle: BALL_COLOR

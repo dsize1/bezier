@@ -1,6 +1,6 @@
 import React, { useMemo, useRef } from 'react';
 import { of, concat } from 'rxjs';
-import { tap, filter } from 'rxjs/operators';
+import { tap, map, filter, withLatestFrom } from 'rxjs/operators';
 import useResize from '../../hooks/useResize';
 import useControlPoints from '../../models/controlPoints';
 import useControlPlayer from '../../models/controlPlayer';
@@ -40,6 +40,7 @@ function Stage (props: Partial<{ className: string }>) {
   }, [width, height]);
 
   const drawBezierCurve = ([stageOptions, controlPonits, controlPlayer]: IDrawBezierCurveOptions) => {
+    console.log('ddd', controlPlayer);
     const clear$ = of<IDrawCoordinatesOptions>([stageOptions, controlPonits]).pipe(
       tap(drawCoordinates)
     );
@@ -65,9 +66,9 @@ function Stage (props: Partial<{ className: string }>) {
   useMulticast<IDrawBezierCurveOptions>(
     [drawBezierCurve],
     [stageOptions, controlPonitsOptions, controlPlayer],
-    (subject) => {
-      return subject.pipe(
-        filter(([, , { run }]) => run)
+    (dependency$) => {
+      return dependency$.pipe(
+        filter((dep) => dep[2].run)
       );
     }
   );
