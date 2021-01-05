@@ -46,4 +46,5 @@
   flex-wrap: nowrap;
   flex-direction: column;
   justify-content: center;
+  overflow: hidden;
 }

@@ -20,10 +20,10 @@ const getMotion$ = (
   startPoint: IPoint,
   endPoint: IPoint,
   controlPoints: IControlPoints,
-  duration: number,
   delay: number
 ): Observable<IMotionValue> => {
   // todo 用相对值去计算
+  const { duration } = controlPoints;
   const distanceX = Math.abs(endPoint[0] - startPoint[0]);
   const distanceY = Math.abs(endPoint[1] - startPoint[1]);
   const orientationX = distanceX === 0 ?

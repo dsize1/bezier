@@ -23,8 +23,6 @@ class Canvas {
   public height!: number;
   // canvas内图形
   private shapes: Map<string, ShapeType>;
-  // 舞台
-  private stage: Set<string>;
 
   constructor(
     containerEl: Element,
@@ -32,12 +30,6 @@ class Canvas {
   ) {
     this.id = `canvas-${v4()}`;
     this.shapes = new Map<string, ShapeType>();
-    this.stage = new Set<string>();
-    _each(stage, (shape: ShapeType) => {
-      const id = shape.id;
-      this.shapes.set(id, shape);
-      this.stage.add(id);
-    });
     this.container = containerEl;
     this.createCanvas(containerEl);
     this.resizeObserver = new ResizeObserver(this.resizeObserverCallback.bind(this));
@@ -47,7 +39,6 @@ class Canvas {
   public destroy () {
     this.resizeObserver.disconnect();
     this.shapes.clear();
-    this.stage.clear();
   }
 
   public append (id: string, shape: ShapeType) {
@@ -57,7 +48,6 @@ class Canvas {
 
   public remove (id: string) {
     this.shapes.delete(id);
-    this.stage.delete(id);
     this.drawShapes();
   }
 
