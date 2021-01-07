@@ -16,8 +16,8 @@ interface IInitialRectangle {
 }
 export type IRectangleState = Partial<Omit<IInitialRectangle, 'alias'>>;
 class Rectangle {
-  public id: string;
-  public alias: string;
+  public readonly id: string;
+  public readonly alias: string;
   public x: number | string;
   public y: number | string;
   public width: number | string;
@@ -42,7 +42,7 @@ class Rectangle {
     _each(nextState, (value, key) => {
       _set(this, key, value);
     });
-  }
+  } 
 
   public draw (canvas: Canvas) {
     const { context: ctx, width, height } = canvas;

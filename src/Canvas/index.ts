@@ -118,15 +118,15 @@ class Canvas {
     didMoved: () => void,
     didCatch: (err: any) => void 
   ): void {
-    const param = _isArray(unit) ? unit : [unit];
-    getMovements$(param)
+    const params = _isArray(unit) ? unit : [unit];
+    getMovements$(params, { width: this.width, height: this.height })
       .pipe(tap(beforeMoving))
       .subscribe({
         next: (movements: Array<IMovement>) => {
           _each(
             movements,
-            ({ id, x, y }: IMovement) => {
-              this.change(id, { x, y });
+            ({ id, ...state }: IMovement) => {
+              this.change(id, state);
             }
           );
           moving(movements);

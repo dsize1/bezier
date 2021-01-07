@@ -17,8 +17,8 @@ interface IInitialCircle {
 }
 export type ICircleState = Partial<Omit<IInitialCircle, 'alias'>>;
 class Circle {
-  public id: string;
-  public alias: string;
+  public readonly id: string;
+  public readonly alias: string;
   public x: number | string;
   public y: number | string;
   public radius: number | string;

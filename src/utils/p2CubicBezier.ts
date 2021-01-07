@@ -10,4 +10,4 @@ import { IControlPoints } from '../models/controlPoints';
 
 export default function p2CubicBezier ({ cp1x, cp1y, cp2x, cp2y }: IControlPoints): string {
   return `cubic-bezier(${cp1x},${cp1y},${cp2x},${cp2y})`;
-}
+};
