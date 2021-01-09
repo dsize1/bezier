@@ -1,12 +1,3 @@
-/*
- * @Author: your name
- * @Date: 2020-12-13 22:38:52
- * @LastEditTime: 2020-12-23 23:24:20
- * @LastEditors: Please set LastEditors
- * @Description: In User Settings Edit
- * @FilePath: \bezier\src\components\Stage\utils.ts
- */
-import toFixed from './toFixed';
 import { IPoint } from '../types';
 
 export type ICalculateBezierResult = { deltaD: number, deltaT: number };
@@ -28,5 +19,5 @@ export default function calculateBezier (t: number, end: IPoint, controlPoint1: 
     y1 * ntPow2MultiplyBy3t +
     y2 * tPow2MultiplyBy3nt +
     yE * tPow3;
-  return { deltaD: toFixed(y, 2), deltaT: toFixed(x, 2) };
+  return { deltaD: y, deltaT: x };
 };

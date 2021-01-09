@@ -4,8 +4,9 @@ import { v4 } from 'uuid';
 import _isFunction from 'lodash/isFunction';
 import _each from 'lodash/each';
 import _isArray from 'lodash/isArray';
-import { getMovements$ } from './utils';
-import { IMovement, IUnit, ShapeType, ShapeState, CanvasContext } from './types';
+import getMovements$ from './utils/getMovements$';
+import Movement from './utils/Movement';
+import { IMovementState, IUnit, ShapeType, ShapeState, CanvasContext, CanvasSize } from './types';
 
 class Canvas {
   // id
@@ -47,12 +48,12 @@ class Canvas {
   }
 
   change (id: string, state: ShapeState): void;
-  change (id: string, state: (shape: ShapeType) => ShapeState): void;
-  public change (id: string, state: ShapeState | ((shape: ShapeType) => ShapeState)) {
+  change (id: string, state: (shape: ShapeType, canvasSize: CanvasSize) => ShapeState): void;
+  public change (id: string, state: ShapeState | ((shape: ShapeType, canvasSize: CanvasSize) => ShapeState)) {
     const shape = this.shapes.get(id) as ShapeType;
     let nextState: ShapeState;
     if (_isFunction(state)) {
-      nextState = state(shape);
+      nextState = state(shape, { width: this.width, height: this.height });
     } else {
       nextState = state;
     }
@@ -99,33 +100,35 @@ class Canvas {
 
   move (
     unit: IUnit,
-    beforeMoving: (movements: Array<IMovement>) => void,
-    moving: (movements: Array<IMovement>) => void,
+    beforeMoving: (movements: Array<IMovementState>) => void,
+    moving: (movements: Array<IMovementState>) => void,
     didMoved: () => void,
     didCatch: (err: any) => void 
   ): void;
   move (
     units: Array<IUnit>,
-    beforeMoving: (movements: Array<IMovement>) => void,
-    moving: (movements: Array<IMovement>) => void,
+    beforeMoving: (movements: Array<IMovementState>) => void,
+    moving: (movements: Array<IMovementState>) => void,
     didMoved: () => void,
     didCatch: (err: any) => void 
   ): void;
   public move (
     unit: IUnit | Array<IUnit>,
-    beforeMoving: (movements: Array<IMovement>) => void,
-    moving: (movements: Array<IMovement>) => void,
+    beforeMoving: (movements: Array<IMovementState>) => void,
+    moving: (movements: Array<IMovementState>) => void,
     didMoved: () => void,
     didCatch: (err: any) => void 
   ): void {
     const params = _isArray(unit) ? unit : [unit];
-    getMovements$(params, { width: this.width, height: this.height })
+    const size = { width: this.width, height: this.height }
+    const movement = new Movement();
+    getMovements$(params, size, movement)
       .pipe(tap(beforeMoving))
       .subscribe({
-        next: (movements: Array<IMovement>) => {
+        next: (movements: Array<IMovementState>) => {
           _each(
             movements,
-            ({ id, ...state }: IMovement) => {
+            ({ id, state }: IMovementState) => {
               this.change(id, state);
             }
           );

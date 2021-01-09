@@ -10,6 +10,7 @@ import toFixed from './toFixed';
 import calculateBezier from './calculateBezier';
 import getStyleCls from './getStyleCls';
 import p2CubicBezier from './p2CubicBezier';
+import cubicBezier2p from './cubicBezier2p';
 import getMotion$ from './getMotion$';
 import getCtxByStage from './getCtxByStage';
 // todo 封装画各种基础图形的类
@@ -20,6 +21,7 @@ const utils = {
   calculateBezier,
   getStyleCls,
   p2CubicBezier,
+  cubicBezier2p,
   getMotion$,
   getCtxByStage,
   drawPoint

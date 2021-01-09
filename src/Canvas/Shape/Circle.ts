@@ -1,27 +1,26 @@
 import { v4 } from 'uuid';
 import _each from 'lodash/each';
 import _set from 'lodash/set';
-import _isFunction from 'lodash/isFunction';
-import { percent2Number } from '../utils';
 import Canvas from '../index';
 
 const TWO_PI = Math.PI * 2;
 
 interface IInitialCircle {
-  x: number | string;
-  y: number | string;
-  radius: number | string;
+  x: number;
+  y: number;
+  radius: number;
   fillStyle?: string;
   drawType?: 'fill' | 'stroke';
   alias?: string;
 }
-export type ICircleState = Partial<Omit<IInitialCircle, 'alias'>>;
+export type CircleState = Partial<Omit<IInitialCircle, 'alias'>>;
+export type CirclePosition = Partial<Pick<IInitialCircle, 'x' | 'y' | 'radius'>>;
 class Circle {
   public readonly id: string;
   public readonly alias: string;
-  public x: number | string;
-  public y: number | string;
-  public radius: number | string;
+  public x: number;
+  public y: number;
+  public radius: number;
   public fillStyle: string | undefined;
   public drawType: 'fill' | 'stroke';
   
@@ -37,21 +36,18 @@ class Circle {
     this.drawType = drawType || 'fill';
   }
 
-  public setState (nextState: ICircleState) {
+  public setState (nextState: CircleState) {
     _each(nextState, (value, key) => {
       _set(this, key, value);
     });
   }
 
   public draw (canvas: Canvas) {
-    const { context: ctx, width, height } = canvas;
-    const x = percent2Number(this.x, width);
-    const y = percent2Number(this.y, height);
-    const r = percent2Number(this.radius, width);
+    const { context: ctx } = canvas;
     ctx.save();
     ctx.beginPath();
-    ctx.moveTo(x, y);
-    ctx.arc(x, y, r, 0, TWO_PI);
+    ctx.moveTo(this.x, this.y);
+    ctx.arc(this.x, this.y, this.radius, 0, TWO_PI);
     ctx.closePath();
     if (this.fillStyle) {
       ctx.fillStyle = this.fillStyle;

@@ -29,8 +29,7 @@ function Display() {
   const rect = useConstant(() => new Rectangle({
     x: 0,
     y: 168.5,
-    width:
-    '100%',
+    width: 400,
     height: RECT_HEIGHT,
     fillStyle: RECT_COLOR 
   }));
