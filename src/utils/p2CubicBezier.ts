@@ -8,6 +8,8 @@
  */
 import { IControlPoints } from '../models/controlPoints';
 
-export default function p2CubicBezier ({ cp1x, cp1y, cp2x, cp2y }: IControlPoints): string {
+export default function p2CubicBezier (
+  { cp1x, cp1y, cp2x, cp2y }: Omit<IControlPoints, 'duration' | 'cubicBezier'>
+): string {
   return `cubic-bezier(${cp1x},${cp1y},${cp2x},${cp2y})`;
 };

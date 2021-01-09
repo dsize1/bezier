@@ -20,7 +20,7 @@ export default class Movement {
     const state = {
       ...prevState,
       [key]: value
-    }
+    };
     this.set(id, state);
   }
 
@@ -31,10 +31,10 @@ export default class Movement {
         movementState.push({ id, state });
       }
     );
-    return movementState
+    return movementState;
   }
 
-  public destroy () {
+  public clear () {
     this.state?.clear();
     this.state = null;
   }

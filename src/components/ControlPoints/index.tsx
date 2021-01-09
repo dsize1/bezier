@@ -4,6 +4,7 @@ import { CopyrightTwoTone } from '@ant-design/icons';
 import InputRange from './InputRange';
 import _omit from 'lodash/omit';
 import _split from 'lodash/split';
+import _map from 'lodash/map';
 import _has from 'lodash/has';
 import utils from '../../utils'
 import { IControlPoints } from '../../models/controlPoints';
@@ -18,7 +19,7 @@ const libaray = [
   { label: 'ease-in-out', value: '.42,0,.58,1' }
 ]
 
-interface IForm extends IControlPoints {
+interface IForm extends Omit<IControlPoints, 'cubicBezier'> {
   libaray: string | undefined;
   duration: number;
 }
@@ -39,7 +40,9 @@ function ControlPoints(props: Partial<{ className: string }>) {
   const onFinish = (values: IForm, run = true) => {
     if (!player.run) {
       const nextPoints = _omit(values, ['libaray']);
-      setPoints(nextPoints);
+      const { cp1x, cp1y, cp2x, cp2y } = nextPoints;
+      const cubicBezier = utils.p2CubicBezier({ cp1x, cp1y, cp2x, cp2y });
+      setPoints({ ...nextPoints, cubicBezier });
       setPlayer({ run });
     }
   }
@@ -58,14 +61,15 @@ function ControlPoints(props: Partial<{ className: string }>) {
       if (changedValues.libaray === undefined) {
         onReset();
       } else {
-        const [cp1x, cp1y, cp2x, cp2y] = _split(changedValues.libaray, ',');
+        const cps = _split(changedValues.libaray, ',');
+        const [cp1x, cp1y, cp2x, cp2y] = _map(cps, Number);
         const formValues = {
           duration: allValues.duration,
           libaray: changedValues.libaray,
-          cp1x: Number(cp1x),
-          cp1y: Number(cp1y),
-          cp2x: Number(cp2x),
-          cp2y: Number(cp2y)
+          cp1x,
+          cp1y,
+          cp2x,
+          cp2y
         };
         form.setFieldsValue(formValues);
         onFinish(formValues, false);
@@ -79,10 +83,6 @@ function ControlPoints(props: Partial<{ className: string }>) {
       onFinish(formValues, false);
     }
   }
-
-  const bezierCurve = useMemo(() => {
-    return utils.p2CubicBezier(points);
-  }, [points]);
 
   return (
     <Form
@@ -183,7 +183,7 @@ function ControlPoints(props: Partial<{ className: string }>) {
       <Row justify="start" >        
         <Col span={10}>
           <Form.Item label="贝塞尔曲线">
-            <span>{bezierCurve}</span>
+            <span>{points.cubicBezier}</span>
           </Form.Item>
         </Col>
         <Col span={10} offset={4} >

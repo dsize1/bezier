@@ -8,6 +8,25 @@ import getMovements$ from './utils/getMovements$';
 import Movement from './utils/Movement';
 import { IMovementState, IUnit, ShapeType, ShapeState, CanvasContext, CanvasSize } from './types';
 
+interface Initiate {
+  (canvasSize: CanvasSize, context: CanvasContext, cavas: Canvas): void
+}
+interface Moving {
+  (movements: Array<IMovementState>, canvas: Canvas): void
+}
+type BeforeMoving = Moving;
+interface DidMoved {
+  (canvas: Canvas): void
+}
+interface DidCatch {
+  (err: any, canvas: Canvas): void
+}
+interface IMoveHooks {
+  beforeMoving?: BeforeMoving;
+  moving?: Moving;
+  didMoved?: DidMoved;
+  didCatch?: DidCatch;
+}
 class Canvas {
   // id
   public id: string;
@@ -17,19 +36,26 @@ class Canvas {
   public context!: CanvasContext;
   // resize observer
   private resizeObserver: ResizeObserver
+  private InitFunc: Initiate | undefined;
+  public isInitiated: boolean;
   // canvas 宽高
   public width!: number;
   public height!: number;
   // canvas内图形
   private shapes: Map<string, ShapeType>;
 
-  constructor(containerEl: Element) {
+  constructor(
+    containerEl: Element,
+    InitFunc = undefined
+  ) {
     this.id = `canvas-${v4()}`;
     this.shapes = new Map<string, ShapeType>();
     this.container = containerEl;
     this.createCanvas(containerEl);
     this.resizeObserver = new ResizeObserver(this.resizeObserverCallback.bind(this));
     this.resizeObserver.observe(containerEl);
+    this.isInitiated = false;
+    this.InitFunc = InitFunc;
   }
   
   public destroy () {
@@ -39,12 +65,10 @@ class Canvas {
 
   public append (id: string, shape: ShapeType) {
     this.shapes.set(id, shape);
-    shape.draw(this);
   }
 
   public remove (id: string) {
     this.shapes.delete(id);
-    this.drawShapes();
   }
 
   change (id: string, state: ShapeState): void;
@@ -58,7 +82,6 @@ class Canvas {
       nextState = state;
     }
     shape.setState(nextState);
-    shape.draw(this);
   }
 
   public clear (x: number = 0, y: number = 0, w: number = this.width, h: number = this.height) {
@@ -79,9 +102,11 @@ class Canvas {
     if (canvas) {
       canvas.width = this.width;
       canvas.height = this.height;
-      this.clear();
-      this.drawShapes();
     }
+  }
+
+  public init (InitFunc: Initiate) {
+    this.InitFunc = InitFunc;
   }
 
   private createCanvas (containerEl: Element) {
@@ -94,36 +119,36 @@ class Canvas {
   private resizeObserverCallback (entries: { contentRect: { width: number; height: number; }; }[]) {
     entries.forEach((entry: { contentRect: { width: number; height: number; }; }) => {
       const { width, height } = entry.contentRect;
+      this.isInitiated = false;
       this.setSize(width, height);
+      this.clear();
+      this.isInitiated = true;
+      if (_isFunction(this.InitFunc)) this.InitFunc({ width, height }, this.context, this);
+      this.drawShapes();
     });
   }
 
   move (
     unit: IUnit,
-    beforeMoving: (movements: Array<IMovementState>) => void,
-    moving: (movements: Array<IMovementState>) => void,
-    didMoved: () => void,
-    didCatch: (err: any) => void 
+    hooks: IMoveHooks
   ): void;
   move (
     units: Array<IUnit>,
-    beforeMoving: (movements: Array<IMovementState>) => void,
-    moving: (movements: Array<IMovementState>) => void,
-    didMoved: () => void,
-    didCatch: (err: any) => void 
+    hooks: IMoveHooks
   ): void;
   public move (
     unit: IUnit | Array<IUnit>,
-    beforeMoving: (movements: Array<IMovementState>) => void,
-    moving: (movements: Array<IMovementState>) => void,
-    didMoved: () => void,
-    didCatch: (err: any) => void 
+    hooks: IMoveHooks
   ): void {
     const params = _isArray(unit) ? unit : [unit];
     const size = { width: this.width, height: this.height }
     const movement = new Movement();
     getMovements$(params, size, movement)
-      .pipe(tap(beforeMoving))
+      .pipe(
+        tap((movements: Array<IMovementState>) => {
+          if (_isFunction(hooks.beforeMoving)) hooks.beforeMoving(movements, this);
+        })
+      )
       .subscribe({
         next: (movements: Array<IMovementState>) => {
           _each(
@@ -132,13 +157,15 @@ class Canvas {
               this.change(id, state);
             }
           );
-          moving(movements);
+          if (_isFunction(hooks.moving)) hooks.moving(movements, this);
         },
         complete: () => {
-          didMoved();
+          movement.clear();
+          if (_isFunction(hooks.didMoved)) hooks.didMoved(this);
         },
         error: (err: any) => {
-          didCatch(err);
+          movement.clear();
+          if (_isFunction(hooks.didCatch)) hooks.didCatch(err, this);
         }
       });
   }

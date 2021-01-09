@@ -27,5 +27,5 @@ export interface IMovement{
 
 export interface IMovementState{
   id: string;
-  state: ShapeState;
+  state: ShapePosition;
 };

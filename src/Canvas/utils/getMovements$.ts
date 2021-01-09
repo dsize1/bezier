@@ -1,9 +1,10 @@
 import { timer, animationFrameScheduler, Observable } from 'rxjs';
-import { mapTo, scan, takeWhile } from 'rxjs/operators';
+import { map, scan, takeWhile } from 'rxjs/operators';
 import _isFunction from 'lodash/isFunction';
 import _map from 'lodash/map';
 import _get from 'lodash/get';
-import _every from 'lodash/every'
+import _every from 'lodash/every';
+import _some from 'lodash/some';
 import _toPairs from 'lodash/toPairs';
 import utils from '../../utils';
 import Movement from './Movement';
@@ -79,10 +80,10 @@ export default function getMovements$ (
       scan(
         (acc: IScanAcc): IScanAcc => {
           const currTimeLine = Date.now();
-          const startTimeLine = _get(acc, 'startTime', currTimeLine);
+          const startTimeLine = _get(acc, 'startTimeLine', currTimeLine);
           const diffTimeLine = currTimeLine - startTimeLine;
           const accUnitsParams = _map(
-            unitsParams,
+            acc.unitsParams,
             (unit: ICalculateBezierUnit) => {
               if (!unit.isMoving && diffTimeLine < unit.delay) return unit;
               const unitMovements = _map(
@@ -98,6 +99,7 @@ export default function getMovements$ (
                   if (distance !== 0) {
                     const { deltaD } = utils.calculateBezier(percent, endP, cp1P, cp2P);
                     curr = curr + (deltaD * orientation);
+                    curr = utils.toFixed(curr, 2);
                   }
                   const prev = _get(movement, 'prev', movement.start);
                   unitsState.setState(unit.id, movement.key, curr);
@@ -107,12 +109,12 @@ export default function getMovements$ (
               const unitIsMoved = _every(unitMovements, ['percent', 1]);
               return { ...unit, movements: unitMovements, isMoved: unitIsMoved, isMoving: true };
             }
-          )
-          return { startTimeLine , unitsParams: accUnitsParams };
+          );
+          return { startTimeLine, unitsParams: accUnitsParams };
         },
         { startTimeLine: undefined, unitsParams }
       ),
-      takeWhile(({ unitsParams }) => _every(unitsParams, 'isMoved'), true),
-      mapTo(unitsState.getState())
+      takeWhile(({ unitsParams }) => _some(unitsParams, ['isMoved', false]), true),
+      map((_) => unitsState.getState())
     )
 };
