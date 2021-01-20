@@ -4,6 +4,7 @@ import { v4 } from 'uuid';
 import _isFunction from 'lodash/isFunction';
 import _each from 'lodash/each';
 import _isArray from 'lodash/isArray';
+import Shapes from './utils/Shapes';
 import getMovements$ from './utils/getMovements$';
 import Movement from './utils/Movement';
 import { IMovementState, IUnit, ShapeType, ShapeState, CanvasContext, CanvasSize } from './types';
@@ -42,14 +43,14 @@ class Canvas {
   public width!: number;
   public height!: number;
   // canvas内图形
-  private shapes: Map<string, ShapeType>;
+  private shapes!: Shapes;
 
   constructor(
     containerEl: Element,
     InitFunc = undefined
   ) {
     this.id = `canvas-${v4()}`;
-    this.shapes = new Map<string, ShapeType>();
+    this.shapes = new Shapes(0, 0);
     this.container = containerEl;
     this.createCanvas(containerEl);
     this.resizeObserver = new ResizeObserver(this.resizeObserverCallback.bind(this));
@@ -64,24 +65,21 @@ class Canvas {
   }
 
   public append (id: string, shape: ShapeType) {
-    this.shapes.set(id, shape);
+    this.shapes.append(id, shape);
   }
 
   public remove (id: string) {
-    this.shapes.delete(id);
+    this.shapes.remove(id);
   }
 
   change (id: string, state: ShapeState): void;
   change (id: string, state: (shape: ShapeType, canvasSize: CanvasSize) => ShapeState): void;
   public change (id: string, state: ShapeState | ((shape: ShapeType, canvasSize: CanvasSize) => ShapeState)) {
-    const shape = this.shapes.get(id) as ShapeType;
-    let nextState: ShapeState;
-    if (_isFunction(state)) {
-      nextState = state(shape, { width: this.width, height: this.height });
-    } else {
-      nextState = state;
-    }
-    shape.setState(nextState);
+    const shape = this.shapes.get(id);
+    const nextState = _isFunction(state) ?
+      state(shape, { width: this.width, height: this.height }) :
+      state;
+    this.shapes.change(id, nextState);
   }
 
   public clear (x: number = 0, y: number = 0, w: number = this.width, h: number = this.height) {
@@ -103,6 +101,7 @@ class Canvas {
       canvas.width = this.width;
       canvas.height = this.height;
     }
+    this.shapes.resize(width, height);
   }
 
   public init (InitFunc: Initiate) {

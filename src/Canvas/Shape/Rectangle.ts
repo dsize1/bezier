@@ -2,6 +2,7 @@ import { v4 } from 'uuid';
 import _each from 'lodash/each';
 import _set from 'lodash/set';
 import Canvas from '../index';
+import { Region } from '../utils/Shapes';
 
 export interface IInitialRectangle {
   x: number;
@@ -23,6 +24,7 @@ class Rectangle {
   public height: number;
   public fillStyle: string | undefined;
   public drawType: 'fill' | 'stroke';
+  public box: Region;
   
   static type = 'rectangle';
 
@@ -35,13 +37,18 @@ class Rectangle {
     this.height = height;
     this.fillStyle = fillStyle;
     this.drawType = drawType || 'fill';
+    this.box = this.getBoundaryBox();
   }
 
   public setState (nextState: RectangleState) {
     _each(nextState, (value, key) => {
       _set(this, key, value);
     });
-  } 
+  }
+
+  public getBoundaryBox (): Region {
+    return { x: this.x, y: this.y, w: this.width, h: this.height };
+  }
 
   public draw (canvas: Canvas) {
     const { context: ctx } = canvas;

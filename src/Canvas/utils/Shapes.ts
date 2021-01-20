@@ -1,16 +1,13 @@
 import _toPairs from 'lodash/toPairs';
 import _reduce from 'lodash/reduce';
-import _pick from 'lodash/pick';
-import _findIndex from 'lodash/findIndex';
 import _has from 'lodash/has';
 import _each from 'lodash/each';
-import _sortBy from 'lodash/sortBy';
-import { ShapeType } from '../types';
+import { ShapeType, ShapeState, ShapePosition } from '../types';
 
 const MAX_TREE_LEVELS = 7;
 const MAX_Node_SIZE = 4;
 
-type Region = {
+export type Region = {
   x: number;
   y: number;
   w: number;
@@ -97,6 +94,7 @@ class QuadtreePool {
 
   public recycle (quadtreeNode: QuadtreeNode) {
     if (this.pool.length < this.capacity) {
+      quadtreeNode.clear();
       this.pool.push(quadtreeNode);
     }
     console.log('overflow QuadtreePool!!!');
@@ -116,9 +114,8 @@ class Quadtree {
     this.maxLevels = maxLevels;
     this.maxSize = maxSize;
     this.tree = new Array<QuadtreeNode | undefined>();
-    const root = new QuadtreeNode(rootSize, 0);
-    this.tree[0] = root;
     this.quadtreePool = new QuadtreePool();
+    this.tree[0] = this.quadtreePool.create(rootSize, 0);
   }
 
   public getChildRegion (fatherRegion: Region): [Region, Region, Region, Region] {
@@ -226,8 +223,18 @@ class Quadtree {
 
   }
 
-  public traverse (id: string, shape: ShapeType, index = 0) {
-
+  public traverse (iterator: (node: QuadtreeNode) => void, index = 0) {
+    const node = this.tree[index] as QuadtreeNode;
+    iterator(node);
+    if (!node.isLeaf) {
+      const childIndex = index + 4 + 1;
+      for (let quadrant = 0; quadrant <= 3; quadrant++) {
+        const quadrantIndex = childIndex + quadrant; 
+        if (this.tree[quadrantIndex]) {
+          this.traverse(iterator, quadrantIndex);
+        }
+      }
+    }
   } 
 
   public remove (id: string, shape: ShapeType, index = 0): boolean {
@@ -276,9 +283,23 @@ class Quadtree {
     );
     this.tree = new Array<QuadtreeNode | undefined>();
   }
+
+  public init (rootSize: Region) {
+    _each(
+      this.tree,
+      (treeNode: QuadtreeNode | undefined, index: number) => {
+        if (treeNode) {
+          this.quadtreePool.recycle(treeNode);
+          this.tree[index] = undefined;
+        }
+      }
+    );
+    this.tree = new Array<QuadtreeNode | undefined>();
+    this.tree[0] = this.quadtreePool.create(rootSize, 0);
+  }
 }
 
-export default class Shape {
+export default class Shapes {
   private map: Map<string, ShapeType> | null;
   private quadtree: Quadtree | null;
   private width: number;
@@ -291,9 +312,25 @@ export default class Shape {
     this.height = height;
   }
 
+  public resize (width: number, height: number) {
+    this.quadtree?.init({ x: 0, y: 0, w: width, h: height });
+    this.width = width;
+    this.height = height;
+    this.map?.forEach(
+      (shape, id) => {
+        this.quadtree?.insert(id, shape);
+      }
+    );
+  }
+
   public clear () {
     this.map?.clear();
-    this.quadtree?.clear();
+    this.quadtree?.init({ x: 0, y: 0, w: this.width, h: this.height });
+  }
+
+  public get (id: string): ShapeType {
+    const shape = this.map?.get(id) as ShapeType;
+    return shape;
   }
 
   public append (id: string, shape: ShapeType): boolean {
@@ -312,8 +349,23 @@ export default class Shape {
     }
   }
 
+  public change (id: string, state: ShapeState) {
+    const shape = this.get(id);
+    shape.setState(state);
+    // todo judge position change;
+  }
+
+  public show (iterator: () => void) {
+    this.quadtree?.traverse(iterator);
+  }
+
+  public forEach (iterator: (shape: ShapeType, id: string) => void) {
+    this.map?.forEach(iterator);
+  }
+
   public destroy() {
-    this.clear();
+    this.map?.clear();
+    this.quadtree?.clear();
     this.map = null;
     this.quadtree = null;
   }

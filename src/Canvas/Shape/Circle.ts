@@ -2,6 +2,7 @@ import { v4 } from 'uuid';
 import _each from 'lodash/each';
 import _set from 'lodash/set';
 import Canvas from '../index';
+import { Region } from '../utils/Shapes';
 
 const TWO_PI = Math.PI * 2;
 
@@ -23,6 +24,7 @@ class Circle {
   public radius: number;
   public fillStyle: string | undefined;
   public drawType: 'fill' | 'stroke';
+  public box: Region;
   
   static type = 'circle';
 
@@ -34,12 +36,21 @@ class Circle {
     this.radius = radius;
     this.fillStyle = fillStyle;
     this.drawType = drawType || 'fill';
+    this.box = this.getBoundaryBox();
   }
 
   public setState (nextState: CircleState) {
     _each(nextState, (value, key) => {
       _set(this, key, value);
     });
+  }
+
+  public getBoundaryBox (): Region {
+    const x = this.x - this.radius;
+    const y = this.y - this.radius;
+    const w = this.radius * 2;
+    const h = w;
+    return { x, y, w, h };
   }
 
   public draw (canvas: Canvas) {
