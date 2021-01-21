@@ -7,7 +7,7 @@ import _isArray from 'lodash/isArray';
 import Shapes from './utils/Shapes';
 import getMovements$ from './utils/getMovements$';
 import Movement from './utils/Movement';
-import { IMovementState, IUnit, ShapeType, ShapeState, CanvasContext, CanvasSize } from './types';
+import { IMovementState, IUnit, ShapeType, ShapePosition, ShapeState, CanvasContext, CanvasSize } from './types';
 
 interface Initiate {
   (canvasSize: CanvasSize, context: CanvasContext, cavas: Canvas): void
@@ -72,14 +72,14 @@ class Canvas {
     this.shapes.remove(id);
   }
 
-  change (id: string, state: ShapeState): void;
-  change (id: string, state: (shape: ShapeType, canvasSize: CanvasSize) => ShapeState): void;
-  public change (id: string, state: ShapeState | ((shape: ShapeType, canvasSize: CanvasSize) => ShapeState)) {
+  change (id: string, state: ShapePosition): void;
+  change (id: string, state: (shape: ShapeType, canvasSize: CanvasSize) => ShapePosition): void;
+  public change (id: string, state: ShapePosition | ((shape: ShapeType, canvasSize: CanvasSize) => ShapePosition)) {
     const shape = this.shapes.get(id);
     const nextState = _isFunction(state) ?
       state(shape, { width: this.width, height: this.height }) :
       state;
-    this.shapes.change(id, nextState);
+    this.shapes.change(id, shape, nextState);
   }
 
   public clear (x: number = 0, y: number = 0, w: number = this.width, h: number = this.height) {
@@ -88,7 +88,7 @@ class Canvas {
   }
 
   public drawShapes () {
-    this.shapes.forEach((shape: ShapeType, id: string) => {
+    this.shapes.forEach((id: string, shape: ShapeType) => {
       shape.draw(this);
     })
   }

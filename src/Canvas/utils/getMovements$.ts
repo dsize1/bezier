@@ -9,7 +9,7 @@ import _toPairs from 'lodash/toPairs';
 import utils from '../../utils';
 import Movement from './Movement';
 import { IPoint } from '../../types';
-import { IMovement, IMovementState, IUnit, ShapePosition, CanvasSize, ShapeState } from '../types';
+import { IMovement, IMovementState, IUnit, ShapePosition, CanvasSize } from '../types';
 
 type OrientationType = 0 | 1 | -1; 
 interface ICalculateBezierParam {

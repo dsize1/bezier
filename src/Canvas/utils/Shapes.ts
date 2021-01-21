@@ -2,7 +2,8 @@ import _toPairs from 'lodash/toPairs';
 import _reduce from 'lodash/reduce';
 import _has from 'lodash/has';
 import _each from 'lodash/each';
-import { ShapeType, ShapeState, ShapePosition } from '../types';
+import _range from 'lodash/range';
+import { ShapeType, ShapePosition } from '../types';
 
 const MAX_TREE_LEVELS = 7;
 const MAX_Node_SIZE = 4;
@@ -93,8 +94,8 @@ class QuadtreePool {
   }
 
   public recycle (quadtreeNode: QuadtreeNode) {
+    quadtreeNode.clear();
     if (this.pool.length < this.capacity) {
-      quadtreeNode.clear();
       this.pool.push(quadtreeNode);
     }
     console.log('overflow QuadtreePool!!!');
@@ -139,6 +140,10 @@ class Quadtree {
     return Math.floor((child - 1) / 4);
   }
 
+  public getQuadrantIndex (index: number, quadrant: number): number {
+    return index + 5 + quadrant;
+  }
+
   public isContain (box: Region, region: Region): boolean {
     const bX = box.x;
     const bY = box.y;
@@ -177,12 +182,11 @@ class Quadtree {
     let result = false;
     const region = node.getRegion();
     const childrenRegion = this.getChildRegion(region);
-    const childIndex = index + 4 + 1;
     _each(
       childrenRegion,
       (childRegion: Region, quadrant: number) => {
         if (this.isContain(shape.box, childRegion)) {
-          const quadrantIndex = childIndex + quadrant;
+          const quadrantIndex = this.getQuadrantIndex(index, quadrant);
           if (!this.tree[quadrantIndex]) {
             this.tree[quadrantIndex] = this.quadtreePool.create(childRegion, level + 1);
           }
@@ -198,7 +202,6 @@ class Quadtree {
     const level = node.level;
     const region = node.getRegion();
     const childrenRegion = this.getChildRegion(region);
-    const childIndex = index + 4 + 1;
     const units = node.clear();
     _each(
       childrenRegion,
@@ -207,7 +210,7 @@ class Quadtree {
           units,
           ([id, shape]) => {
             if (this.isContain(shape.box, childRegion)) {
-              const quadrantIndex = childIndex + quadrant;
+              const quadrantIndex = this.getQuadrantIndex(index, quadrant);
               if (!this.tree[quadrantIndex]) {
                 this.tree[quadrantIndex] = this.quadtreePool.create(childRegion, level + 1);
               }
@@ -227,13 +230,15 @@ class Quadtree {
     const node = this.tree[index] as QuadtreeNode;
     iterator(node);
     if (!node.isLeaf) {
-      const childIndex = index + 4 + 1;
-      for (let quadrant = 0; quadrant <= 3; quadrant++) {
-        const quadrantIndex = childIndex + quadrant; 
-        if (this.tree[quadrantIndex]) {
-          this.traverse(iterator, quadrantIndex);
+      _each(
+        _range(0, 3),
+        (quadrant) => {
+          const quadrantIndex = this.getQuadrantIndex(index, quadrant);
+          if (this.tree[quadrantIndex]) {
+            this.traverse(iterator, quadrantIndex);
+          }
         }
-      }
+      )
     }
   } 
 
@@ -245,11 +250,10 @@ class Quadtree {
     }
     const region = node.getRegion();
     const childrenRegion = this.getChildRegion(region);
-    const childIndex = index + 4 + 1;
     const emptyChildCount = _reduce(
       childrenRegion,
       (count: number, childRegion: Region, quadrant: number) => {
-        const quadrantIndex = childIndex + quadrant;
+        const quadrantIndex = this.getQuadrantIndex(index, quadrant);
         if (this.tree[quadrantIndex]) {
           if (this.isContain(shape.box, childRegion)) {
             const isEmpty = this.remove(id, shape, quadrantIndex);
@@ -313,11 +317,13 @@ export default class Shapes {
   }
 
   public resize (width: number, height: number) {
+    const past = { width: this.width, height: this.height };
     this.quadtree?.init({ x: 0, y: 0, w: width, h: height });
     this.width = width;
     this.height = height;
     this.map?.forEach(
       (shape, id) => {
+        shape.resize({ width, height }, past);
         this.quadtree?.insert(id, shape);
       }
     );
@@ -349,18 +355,18 @@ export default class Shapes {
     }
   }
 
-  public change (id: string, state: ShapeState) {
-    const shape = this.get(id);
+  public change (id: string, shape: ShapeType, state: ShapePosition) {
+    this.quadtree?.remove(id, shape);
     shape.setState(state);
-    // todo judge position change;
+    this.quadtree?.insert(id, shape);
   }
 
   public show (iterator: () => void) {
     this.quadtree?.traverse(iterator);
   }
 
-  public forEach (iterator: (shape: ShapeType, id: string) => void) {
-    this.map?.forEach(iterator);
+  public forEach (iterator: (id: string, shape: ShapeType) => void) {
+    this.map?.forEach((shape, id) => iterator(id, shape));
   }
 
   public destroy() {

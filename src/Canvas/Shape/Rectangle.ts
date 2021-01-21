@@ -1,6 +1,7 @@
 import { v4 } from 'uuid';
 import _each from 'lodash/each';
 import _set from 'lodash/set';
+import utils from '../../utils';
 import Canvas from '../index';
 import { Region } from '../utils/Shapes';
 
@@ -40,10 +41,23 @@ class Rectangle {
     this.box = this.getBoundaryBox();
   }
 
-  public setState (nextState: RectangleState) {
+  public setState (nextState: RectanglePosition) {
     _each(nextState, (value, key) => {
       _set(this, key, value);
     });
+    this.box = this.getBoundaryBox();
+  }
+
+  public resize (now: { width: number; height: number; }, past: { width: number; height: number; }) {
+    if (past.width === 0 || past.height === 0) {
+      return;
+    }
+    const proportion = now.width / past.width
+    const x = utils.toFixed(this.x * proportion, 2);
+    const y = utils.toFixed(this.y * proportion, 2);
+    const width = utils.toFixed(this.width * proportion, 2);
+    const height = utils.toFixed(this.height * proportion, 2);
+    this.setState({ x, y, width, height });
   }
 
   public getBoundaryBox (): Region {

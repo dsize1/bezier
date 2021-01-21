@@ -10,7 +10,7 @@ export type CanvasContext = CanvasRenderingContext2D;
 export type CanvasSize = { width: number; height: number; };
 export interface IUnit {
   shape: ShapeType;
-  state: ShapeState | ((shape: ShapeType, canvasSize: CanvasSize) => ShapePosition);
+  state: ShapePosition | ((shape: ShapeType, canvasSize: CanvasSize) => ShapePosition);
   cubicBezier?: string;
   delay?: number;
   duration: number;
