@@ -15,6 +15,7 @@ import getMotion$ from './getMotion$';
 import getCtxByStage from './getCtxByStage';
 // todo 封装画各种基础图形的类
 import drawPoint from './drawPoint';
+import random from './random';
 
 const utils = {
   toFixed,
@@ -24,7 +25,8 @@ const utils = {
   cubicBezier2p,
   getMotion$,
   getCtxByStage,
-  drawPoint
+  drawPoint,
+  random
 }
 
 export default utils;

@@ -4,9 +4,11 @@ import { v4 } from 'uuid';
 import _isFunction from 'lodash/isFunction';
 import _each from 'lodash/each';
 import _isArray from 'lodash/isArray';
+import Rectangle from './Shape/Rectangle';
 import Shapes from './utils/Shapes';
 import getMovements$ from './utils/getMovements$';
 import Movement from './utils/Movement';
+import { QuadtreeNode } from './utils/Shapes';
 import { IMovementState, IUnit, ShapeType, ShapePosition, ShapeState, CanvasContext, CanvasSize } from './types';
 
 interface Initiate {
@@ -102,6 +104,30 @@ class Canvas {
       canvas.height = this.height;
     }
     this.shapes.resize(width, height);
+  }
+
+  public test () {
+    this.shapes.show(
+      (qtNode: QuadtreeNode) => {
+        const bBox = new Rectangle({
+          x: qtNode.x,
+          y: qtNode.y,
+          width: qtNode.w,
+          height: qtNode.h,
+          fillStyle: '#333',
+          drawType: 'stroke'
+        });
+        bBox.draw(this);
+        if (qtNode.isLeaf) {
+          _each(
+            qtNode.units,
+            (shape: ShapeType) => {
+              shape.draw(this);
+            }
+          )
+        }
+      }
+    );
   }
 
   public init (InitFunc: Initiate) {

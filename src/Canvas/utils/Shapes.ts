@@ -15,7 +15,7 @@ export type Region = {
   h: number;
 };
 
-class QuadtreeNode {
+export class QuadtreeNode {
   public units: { [id: string]: ShapeType; };
   public size: number;
   public isLeaf: boolean;
@@ -62,11 +62,11 @@ class QuadtreeNode {
     return this.size;
   }
 
-  public clear (): Array<[id: string, shape: ShapeType]> {
+  public clear (): { [id: string]: ShapeType; } {
     this.isLeaf = false;
-    const unitsArr = _toPairs(this.units);
+    const units = this.units;
     this.units = {};
-    return unitsArr;
+    return units;
   }
 
   public getRegion (): Region {
@@ -141,7 +141,7 @@ class Quadtree {
   }
 
   public getQuadrantIndex (index: number, quadrant: number): number {
-    return index + 5 + quadrant;
+    return index * 4 + 1 + quadrant;
   }
 
   public isContain (box: Region, region: Region): boolean {
@@ -154,10 +154,8 @@ class Quadtree {
     const rXw = region.x + region.w;
     const rYh = region.y + region.h;
     if (
-      (rX <= bX && bX <= rXw) ||
-      (rX <= bXw && bXw <= rXw) ||
-      (rY <= bY && bY <= rYh) ||
-      (rY <= bYh && bYh <= rYh)
+      ((rX <= bX && bX <= rXw) || (rX <= bXw && bXw <= rXw)) &&
+      ((rY <= bY && bY <= rYh) || (rY <= bYh && bYh <= rYh))
     ) {
       return true;
     }
@@ -187,9 +185,6 @@ class Quadtree {
       (childRegion: Region, quadrant: number) => {
         if (this.isContain(shape.box, childRegion)) {
           const quadrantIndex = this.getQuadrantIndex(index, quadrant);
-          if (!this.tree[quadrantIndex]) {
-            this.tree[quadrantIndex] = this.quadtreePool.create(childRegion, level + 1);
-          }
           result = this.insert(id, shape, quadrantIndex) || result;
         }
       }
@@ -206,14 +201,12 @@ class Quadtree {
     _each(
       childrenRegion,
       (childRegion: Region, quadrant: number) => {
+        const quadrantIndex = this.getQuadrantIndex(index, quadrant);
+        this.tree[quadrantIndex] = this.quadtreePool.create(childRegion, level + 1);
         _each(
           units,
-          ([id, shape]) => {
+          (shape, id) => {
             if (this.isContain(shape.box, childRegion)) {
-              const quadrantIndex = this.getQuadrantIndex(index, quadrant);
-              if (!this.tree[quadrantIndex]) {
-                this.tree[quadrantIndex] = this.quadtreePool.create(childRegion, level + 1);
-              }
               this.insert(id, shape, quadrantIndex);
             }
           }
@@ -231,7 +224,7 @@ class Quadtree {
     iterator(node);
     if (!node.isLeaf) {
       _each(
-        _range(0, 3),
+        _range(0, 4),
         (quadrant) => {
           const quadrantIndex = this.getQuadrantIndex(index, quadrant);
           if (this.tree[quadrantIndex]) {
@@ -361,7 +354,7 @@ export default class Shapes {
     this.quadtree?.insert(id, shape);
   }
 
-  public show (iterator: () => void) {
+  public show (iterator: (node: QuadtreeNode) => void) {
     this.quadtree?.traverse(iterator);
   }
 
