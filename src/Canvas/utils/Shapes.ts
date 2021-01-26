@@ -215,8 +215,45 @@ class Quadtree {
     );
   }
 
-  public query (id: string, shape: ShapeType, index = 0) {
+  public query (bbox: Region, index = 0): Array<QuadtreeNode> {
+    const node = this.tree[index] as QuadtreeNode;
+    if (node.isLeaf) {
+      return [node];
+    }
+    const region = node.getRegion();
+    const childrenRegion = this.getChildRegion(region);
+    return _reduce(
+      childrenRegion,
+      (queryResult: Array<QuadtreeNode>, childRegion: Region, quadrant: number) => {
+        if (this.isContain(bbox, childRegion)) {
+          const quadrantIndex = this.getQuadrantIndex(index, quadrant);
+          return [
+            ...this.query(bbox, quadrantIndex),
+            ...queryResult
+          ];
+        }
+        return queryResult;
+      },
+      []
+    );
+  }
 
+  public queryEventTarget (bbox: Region): Array<ShapeType> {
+    const nodeList = this.query(bbox);
+    return _reduce(
+      nodeList,
+      (targetResult: Array<ShapeType>, node: QuadtreeNode) => {
+        _each(
+          node.units,
+          (unit: ShapeType) => {
+            // todo judge hit
+            targetResult.push(unit);
+          }
+        );
+        return targetResult;
+      },
+      []
+    );
   }
 
   public traverse (iterator: (node: QuadtreeNode) => void, index = 0) {
@@ -231,7 +268,7 @@ class Quadtree {
             this.traverse(iterator, quadrantIndex);
           }
         }
-      )
+      );
     }
   } 
 
@@ -360,6 +397,10 @@ export default class Shapes {
 
   public forEach (iterator: (id: string, shape: ShapeType) => void) {
     this.map?.forEach((shape, id) => iterator(id, shape));
+  }
+
+  public getEventTarget (x: number, y: number): Array<ShapeType> {
+    return this.quadtree?.queryEventTarget({ x, y, w: 1, h: 1 }) ?? [];
   }
 
   public destroy() {
