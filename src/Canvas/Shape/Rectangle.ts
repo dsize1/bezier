@@ -3,6 +3,7 @@ import _each from 'lodash/each';
 import _set from 'lodash/set';
 import utils from '../../utils';
 import Canvas from '../index';
+import { BaseShape } from '../utils/event';
 import { Region } from '../utils/Shapes';
 
 export interface IInitialRectangle {
@@ -16,7 +17,7 @@ export interface IInitialRectangle {
 }
 export type RectangleState = Partial<Omit<IInitialRectangle, 'alias'>>;
 export type RectanglePosition = Partial<Pick<IInitialRectangle, 'x' | 'y' | 'width' | 'height'>>
-class Rectangle {
+class Rectangle extends BaseShape {
   public readonly id: string;
   public readonly alias: string;
   public x: number;
@@ -30,6 +31,7 @@ class Rectangle {
   static type = 'rectangle';
 
   constructor({ x, y, width, height, fillStyle, drawType, alias }: IInitialRectangle) {
+    super();
     this.id = v4();
     this.alias = alias || this.id;
     this.x = x;

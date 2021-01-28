@@ -34,12 +34,12 @@ class Canvas {
   // id
   public id: string;
   // 容器元素
-  public container: Element;
+  public canvasEl!: HTMLCanvasElement;
   // canvas 上下文
   public context!: CanvasContext;
   // resize observer
   private resizeObserver: ResizeObserver
-  private InitFunc: Initiate | undefined;
+  private initFunc: Initiate | undefined;
   public isInitiated: boolean;
   // canvas 宽高
   public width!: number;
@@ -47,23 +47,20 @@ class Canvas {
   // canvas内图形
   private shapes!: Shapes;
 
-  constructor(
-    containerEl: Element,
-    InitFunc = undefined
-  ) {
+  constructor(readonly containerEl: Element, InitFunc = undefined) {
     this.id = `canvas-${v4()}`;
     this.shapes = new Shapes(0, 0);
-    this.container = containerEl;
     this.createCanvas(containerEl);
     this.resizeObserver = new ResizeObserver(this.resizeObserverCallback.bind(this));
     this.resizeObserver.observe(containerEl);
     this.isInitiated = false;
-    this.InitFunc = InitFunc;
+    this.initFunc = InitFunc;
   }
   
   public destroy () {
     this.resizeObserver.disconnect();
     this.shapes.clear();
+    this.containerEl.removeChild(this.canvasEl);
   }
 
   public append (id: string, shape: ShapeType) {
@@ -109,11 +106,12 @@ class Canvas {
   public test () {
     this.shapes.show(
       (qtNode: QuadtreeNode) => {
+        const { x, y, w, h } = qtNode.getRegion();
         const bBox = new Rectangle({
-          x: qtNode.x,
-          y: qtNode.y,
-          width: qtNode.w,
-          height: qtNode.h,
+          x: x,
+          y: y,
+          width: w,
+          height: h,
           fillStyle: '#333',
           drawType: 'stroke'
         });
@@ -131,14 +129,14 @@ class Canvas {
   }
 
   public init (InitFunc: Initiate) {
-    this.InitFunc = InitFunc;
+    this.initFunc = InitFunc;
   }
 
   private createCanvas (containerEl: Element) {
-    const canvasEl = document.createElement('canvas');
-    canvasEl.id = this.id;
-    this.context = canvasEl.getContext('2d') as CanvasContext;
-    containerEl.appendChild(canvasEl);
+    this.canvasEl = document.createElement('canvas');
+    this.canvasEl.id = this.id;
+    this.context = this.canvasEl.getContext('2d') as CanvasContext;
+    containerEl.appendChild(this.canvasEl);
   }
 
   private resizeObserverCallback (entries: { contentRect: { width: number; height: number; }; }[]) {
@@ -148,23 +146,14 @@ class Canvas {
       this.setSize(width, height);
       this.clear();
       this.isInitiated = true;
-      if (_isFunction(this.InitFunc)) this.InitFunc({ width, height }, this.context, this);
+      if (_isFunction(this.initFunc)) this.initFunc({ width, height }, this.context, this);
       this.drawShapes();
     });
   }
 
-  move (
-    unit: IUnit,
-    hooks: IMoveHooks
-  ): void;
-  move (
-    units: Array<IUnit>,
-    hooks: IMoveHooks
-  ): void;
-  public move (
-    unit: IUnit | Array<IUnit>,
-    hooks: IMoveHooks
-  ): void {
+  move (unit: IUnit, hooks: IMoveHooks): void;
+  move (units: Array<IUnit>, hooks: IMoveHooks): void;
+  public move (unit: IUnit | Array<IUnit>, hooks: IMoveHooks): void {
     const params = _isArray(unit) ? unit : [unit];
     const size = { width: this.width, height: this.height }
     const movement = new Movement();

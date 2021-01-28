@@ -3,6 +3,7 @@ import _each from 'lodash/each';
 import _set from 'lodash/set';
 import utils from '../../utils';
 import Canvas from '../index';
+import { BaseShape } from '../utils/event';
 import { Region } from '../utils/Shapes';
 
 const TWO_PI = Math.PI * 2;
@@ -17,7 +18,7 @@ interface IInitialCircle {
 }
 export type CircleState = Partial<Omit<IInitialCircle, 'alias'>>;
 export type CirclePosition = Partial<Pick<IInitialCircle, 'x' | 'y' | 'radius'>>;
-class Circle {
+class Circle extends BaseShape {
   public readonly id: string;
   public readonly alias: string;
   public x: number;
@@ -30,6 +31,7 @@ class Circle {
   static type = 'circle';
 
   constructor({ x, y, radius, fillStyle, drawType, alias }: IInitialCircle) {
+    super();
     this.id = v4();
     this.alias = alias || this.id;
     this.x = x;

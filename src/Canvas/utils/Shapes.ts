@@ -1,4 +1,3 @@
-import _toPairs from 'lodash/toPairs';
 import _reduce from 'lodash/reduce';
 import _has from 'lodash/has';
 import _each from 'lodash/each';
@@ -20,12 +19,12 @@ export class QuadtreeNode {
   public size: number;
   public isLeaf: boolean;
   public level: number;
-  public x: number;
-  public y: number;
-  public w: number;
-  public h: number;
+  private x: number;
+  private y: number;
+  private w: number;
+  private h: number;
 
-  constructor({ x, y, w, h }: Region, level: number) {
+  constructor ({ x, y, w, h }: Region, level: number) {
     this.x = x;
     this.y = y;
     this.w = w;
@@ -78,7 +77,7 @@ class QuadtreePool {
   public pool: Array<QuadtreeNode>;
   public capacity: number;
 
-  constructor(capacity = 10) {
+  constructor (capacity = 10) {
     this.pool = new Array<QuadtreeNode>();
     this.capacity = capacity;
   }
@@ -111,7 +110,7 @@ class Quadtree {
   public maxSize: number;
   public tree: Array<QuadtreeNode | undefined>;
   public quadtreePool: QuadtreePool;
-  constructor(rootSize: Region, maxLevels = MAX_TREE_LEVELS, maxSize = MAX_Node_SIZE) {
+  constructor (rootSize: Region, maxLevels = MAX_TREE_LEVELS, maxSize = MAX_Node_SIZE) {
     this.maxLevels = maxLevels;
     this.maxSize = maxSize;
     this.tree = new Array<QuadtreeNode | undefined>();
@@ -238,24 +237,6 @@ class Quadtree {
     );
   }
 
-  public queryEventTarget (bbox: Region): Array<ShapeType> {
-    const nodeList = this.query(bbox);
-    return _reduce(
-      nodeList,
-      (targetResult: Array<ShapeType>, node: QuadtreeNode) => {
-        _each(
-          node.units,
-          (unit: ShapeType) => {
-            // todo judge hit
-            targetResult.push(unit);
-          }
-        );
-        return targetResult;
-      },
-      []
-    );
-  }
-
   public traverse (iterator: (node: QuadtreeNode) => void, index = 0) {
     const node = this.tree[index] as QuadtreeNode;
     iterator(node);
@@ -339,7 +320,7 @@ export default class Shapes {
   private width: number;
   private height: number;
 
-  constructor(width: number, height: number) {
+  constructor (width: number, height: number) {
     this.map = new Map<string, ShapeType>();
     this.quadtree = new Quadtree({ x: 0, y: 0, w: width, h: height });
     this.width = width;
@@ -400,10 +381,27 @@ export default class Shapes {
   }
 
   public getEventTarget (x: number, y: number): Array<ShapeType> {
-    return this.quadtree?.queryEventTarget({ x, y, w: 1, h: 1 }) ?? [];
+    const nodeList = this.quadtree?.query({ x, y, w: 1, h: 1 }) ?? [];
+    return _reduce(
+      nodeList,
+      (targetResult: Array<ShapeType>, node: QuadtreeNode) => {
+        _each(
+          node.units,
+          (unit: ShapeType) => {
+            // todo judge hit
+            targetResult.push(unit);
+          }
+        );
+        return targetResult;
+      },
+      []
+    );
   }
 
   public destroy() {
+    this.forEach((id: string, shape: ShapeType) => {
+      shape.off();
+    });
     this.map?.clear();
     this.quadtree?.clear();
     this.map = null;
