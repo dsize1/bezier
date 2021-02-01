@@ -2,6 +2,7 @@ import _reduce from 'lodash/reduce';
 import _has from 'lodash/has';
 import _each from 'lodash/each';
 import _range from 'lodash/range';
+import { ICoordinates } from './Event';
 import { ShapeType, ShapePosition } from '../types';
 
 const MAX_TREE_LEVELS = 7;
@@ -345,9 +346,8 @@ export default class Shapes {
     this.quadtree?.init({ x: 0, y: 0, w: this.width, h: this.height });
   }
 
-  public get (id: string): ShapeType {
-    const shape = this.map?.get(id) as ShapeType;
-    return shape;
+  public get (id: string): ShapeType | undefined {
+    return this.map?.get(id);
   }
 
   public append (id: string, shape: ShapeType): boolean {
@@ -380,7 +380,7 @@ export default class Shapes {
     this.map?.forEach((shape, id) => iterator(id, shape));
   }
 
-  public getEventTarget (x: number, y: number): Array<ShapeType> {
+  public getEventTarget ({ x, y }: ICoordinates): Array<ShapeType> {
     const nodeList = this.quadtree?.query({ x, y, w: 1, h: 1 }) ?? [];
     return _reduce(
       nodeList,
@@ -399,9 +399,11 @@ export default class Shapes {
   }
 
   public destroy() {
-    this.forEach((id: string, shape: ShapeType) => {
-      shape.off();
-    });
+    this.forEach(
+      (id: string, shape: ShapeType) => {
+        shape.off();
+      }
+    );
     this.map?.clear();
     this.quadtree?.clear();
     this.map = null;

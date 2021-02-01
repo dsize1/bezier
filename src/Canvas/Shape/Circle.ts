@@ -3,7 +3,7 @@ import _each from 'lodash/each';
 import _set from 'lodash/set';
 import utils from '../../utils';
 import Canvas from '../index';
-import { BaseShape } from '../utils/event';
+import { BaseShape } from '../utils/Event';
 import { Region } from '../utils/Shapes';
 
 const TWO_PI = Math.PI * 2;

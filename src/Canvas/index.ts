@@ -9,6 +9,7 @@ import Shapes from './utils/Shapes';
 import getMovements$ from './utils/getMovements$';
 import Movement from './utils/Movement';
 import { QuadtreeNode } from './utils/Shapes';
+import { EventBus } from './utils/Event';
 import { IMovementState, IUnit, ShapeType, ShapePosition, ShapeState, CanvasContext, CanvasSize } from './types';
 
 interface Initiate {
@@ -47,6 +48,8 @@ class Canvas {
   // canvas内图形
   private shapes!: Shapes;
 
+  private eventBus!: EventBus;
+
   constructor(readonly containerEl: Element, InitFunc = undefined) {
     this.id = `canvas-${v4()}`;
     this.shapes = new Shapes(0, 0);
@@ -74,7 +77,7 @@ class Canvas {
   change (id: string, state: ShapePosition): void;
   change (id: string, state: (shape: ShapeType, canvasSize: CanvasSize) => ShapePosition): void;
   public change (id: string, state: ShapePosition | ((shape: ShapeType, canvasSize: CanvasSize) => ShapePosition)) {
-    const shape = this.shapes.get(id);
+    const shape = this.shapes.get(id) as ShapeType;
     const nextState = _isFunction(state) ?
       state(shape, { width: this.width, height: this.height }) :
       state;
@@ -137,6 +140,7 @@ class Canvas {
     this.canvasEl.id = this.id;
     this.context = this.canvasEl.getContext('2d') as CanvasContext;
     containerEl.appendChild(this.canvasEl);
+    this.eventBus = new EventBus(this.canvasEl, this.shapes);
   }
 
   private resizeObserverCallback (entries: { contentRect: { width: number; height: number; }; }[]) {

@@ -1,3 +1,6 @@
+import { Observable, fromEvent } from 'rxjs';
+import { mergeAll, withLatestFrom, zipAll, concatMap, takeUntil, distinctUntilChanged } from 'rxjs/operators';
+import _each from 'lodash/each';
 import Shapes from './Shapes';
 import { Region } from './Shapes';
 import { ShapeType, ShapePosition } from '../types';
@@ -5,11 +8,10 @@ import Canvas from '../index';
 
 type EventType = 
   'mousedown' | 'mouseup' | 'contextmenu' |
-  'mouseenter' | 'mouseout' | 'mouseover' |
-  'mousemove' | 'mouseleave' | 'dblclick' |
-  'click';
+  'mouseenter' | 'mouseleave' | 'mousemove' |
+  'click' | 'dblclick'
 
-interface ICoordinates {
+export interface ICoordinates {
   x: number;
   y: number;
 }
@@ -30,9 +32,66 @@ interface EventCallback {
 export class EventBus {
 
   constructor (readonly canvasEl: HTMLCanvasElement, readonly shapes: Shapes) {
-    // canvas add eventlistener: 'mouseMove' 'mousedown' 'mouseup' 'contextmenu';
+    this.observeEvent();
   }
 
+  private observeEvent () {
+    const mouseMove$ = fromEvent<MouseEvent>(this.canvasEl, 'mousemove')
+      .pipe(
+
+      )
+    const mouseDown$ = fromEvent<MouseEvent>(this.canvasEl, 'mousedown');
+    const mouseUp$ = fromEvent<MouseEvent>(this.canvasEl, 'mouseup');
+    const contextMenu$ = fromEvent<MouseEvent>(this.canvasEl, 'contextmenu');
+    const mouseOut$ = fromEvent<MouseEvent>(this.canvasEl, 'mouseout');
+
+
+    contextMenu$.subscribe(
+      (e: MouseEvent) => this.nextHandler(e, 'contextmenu'));
+
+    // click : zip
+    // dbl: bufferToggle openings-> the Click , closingSelector-> timer(200)
+    // drag: start-> mouseDown, mouseDown.concatMap, stop -> mouseup.merge(isn't shape,mouseout), 
+    //    mouseMove.takeUtil(stop$) , map( concat drag event )
+  }
+
+  private nextHandler (e: MouseEvent, type: EventType) {
+    const coords = this.getCoordsFromEvent(e);
+    const clientCoords = this.getClientCoordsFromEvent(e);
+    const targetList = this.shapes.getEventTarget(coords);
+    console.log('event handler: ', targetList);
+    this.dispatch(targetList, type, coords, clientCoords);
+  }
+
+  private getCoordsFromEvent (e: MouseEvent) {
+    return { x: e.offsetX, y: e.offsetY };
+  }
+
+  private getClientCoordsFromEvent (e: MouseEvent) {
+    return { x: e.pageX, y: e.pageY };
+  }
+
+  private dispatch (
+    targetList: Array<ShapeType>,
+    type: EventType,
+    coords: ICoordinates,
+    clientCoords: ICoordinates,
+  ) {
+    _each(
+      targetList,
+      (target: ShapeType) => {
+        const offset = { x: coords.x - target.x, y: coords.y - target.y };
+        target.emit({
+          type,
+          target,
+          timeStamp: Date.now(),
+          offset,
+          coords,
+          clientCoords
+        });
+      }
+    );
+  }
 }
 
 export abstract class BaseShape {
