@@ -380,21 +380,21 @@ export default class Shapes {
     this.map?.forEach((shape, id) => iterator(id, shape));
   }
 
-  public getEventTarget ({ x, y }: ICoordinates): Array<ShapeType> {
+  public getEventTarget ({ x, y }: ICoordinates): ShapeType | null {
     const nodeList = this.quadtree?.query({ x, y, w: 1, h: 1 }) ?? [];
     return _reduce(
       nodeList,
-      (targetResult: Array<ShapeType>, node: QuadtreeNode) => {
+      (targetResult: ShapeType | null, node: QuadtreeNode) => {
         _each(
           node.units,
           (unit: ShapeType) => {
             // todo judge hit
-            targetResult.push(unit);
+            targetResult = unit;
           }
         );
         return targetResult;
       },
-      []
+      null
     );
   }
 
