@@ -11,12 +11,13 @@ export interface IInitialRectangle {
   y: number;
   width: number;
   height: number;
+  zIndex?: number;
   fillStyle?: string;
   drawType?: 'fill' | 'stroke';
   alias?: string;
 }
 export type RectangleState = Partial<Omit<IInitialRectangle, 'alias'>>;
-export type RectanglePosition = Partial<Pick<IInitialRectangle, 'x' | 'y' | 'width' | 'height'>>
+export type RectanglePosition = Partial<Pick<IInitialRectangle, 'x' | 'y' | 'width' | 'height' | 'zIndex'>>
 class Rectangle extends BaseShape {
   public readonly id: string;
   public readonly alias: string;
@@ -24,13 +25,15 @@ class Rectangle extends BaseShape {
   public y: number;
   public width: number;
   public height: number;
+  public zIndex: number;
   public fillStyle: string | undefined;
   public drawType: 'fill' | 'stroke';
   public box: Region;
+  public createAt: number;
   
   static type = 'rectangle';
 
-  constructor({ x, y, width, height, fillStyle, drawType, alias }: IInitialRectangle) {
+  constructor({ x, y, width, height, fillStyle, drawType, alias, zIndex }: IInitialRectangle) {
     super();
     this.id = v4();
     this.alias = alias || this.id;
@@ -38,9 +41,11 @@ class Rectangle extends BaseShape {
     this.y = y;
     this.width = width;
     this.height = height;
+    this.zIndex = zIndex || 0;
     this.fillStyle = fillStyle;
     this.drawType = drawType || 'fill';
     this.box = this.getBoundaryBox();
+    this.createAt = performance.now();
   }
 
   public setState (nextState: RectanglePosition) {

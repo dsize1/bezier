@@ -3,6 +3,7 @@ import {
   concatMap,
   takeUntil,
   takeWhile,
+  skipUntil,
   take,
   map,
   scan,
@@ -25,7 +26,7 @@ export interface ICoordinates {
   y: number;
 }
 
-interface IEvent {
+export interface IEvent {
   type: EventType;
   target: ShapeType;
   timeStamp: number;
@@ -95,7 +96,7 @@ export class EventBus {
           const startX = startEvent.clientX;
           const startY = startEvent.clientY;
 
-          const stop$ = timer(400);
+          const stop$ = timer(200);
           return mouseUp$.pipe(
             take(1),
             takeUntil(stop$),
@@ -206,7 +207,7 @@ export class EventBus {
               acc.events.push({ e: event, type: 'mouseenter', target: currTarget });
             }
           } else if (!_isNil(currTarget) && _isNil(prevTarget)) {
-            acc.events.push({ e: event, type: 'mouseleave', target: currTarget });
+            acc.events.push({ e: event, type: 'mouseenter', target: currTarget });
           }
 
           return acc;
@@ -245,8 +246,6 @@ export class EventBus {
         (startEvent) => {
           const startEventCoords = this.getCoords(startEvent, 'offset');
           const startEventTarget = this.shapes.getEventTarget(startEventCoords);
-          const initialX = startEventTarget?.x ?? 0;
-          const initialY = startEventTarget?.y ?? 0;
           const stop$ = merge(
             mouseUp$,
             mouseOut$
@@ -254,19 +253,20 @@ export class EventBus {
 
           return mouseMove$.pipe(
             takeUntil(stop$),
+            skipUntil(timer(200)),
             map((moveEvent) => {
-              const moveX = moveEvent.clientX - startEvent.clientX + initialX;
-              const moveY = moveEvent.clientY - startEvent.clientY + initialY;
+              const moveX = moveEvent.clientX - startEvent.clientX;
+              const moveY = moveEvent.clientY - startEvent.clientY;
               const moveEventCoords = this.getCoords(moveEvent, 'offset');
               const moveEventTarget = this.shapes.getEventTarget(moveEventCoords);
-              const isMoveOut = !_isNil(moveEventTarget) &&
-                !_isNil(startEventTarget) &&
-                moveEventTarget === startEventTarget;
-
+              const isMoveOut =
+                _isNil(moveEventTarget) ||
+                _isNil(startEventTarget) ||
+                moveEventTarget !== startEventTarget;
               return { event: moveEvent, isMoveOut, target: moveEventTarget, moveX, moveY };
             }),
             takeWhile(
-              ({ event, isMoveOut }) => event.timeStamp - startEvent.timeStamp < 50 || isMoveOut
+              ({ isMoveOut }) => !isMoveOut
             )
           );
         }
@@ -274,7 +274,6 @@ export class EventBus {
     )
       .subscribe(({ event, target, moveX, moveY }) => {
         if (target) {
-          console.log(event);
           const coords = this.getCoords(event, 'offset');
           const clientCoords = this.getCoords(event, 'client');
           const offset = { x: moveX, y: moveY };

@@ -12,6 +12,7 @@ interface IInitialCircle {
   x: number;
   y: number;
   radius: number;
+  zIndex?: number;
   fillStyle?: string;
   drawType?: 'fill' | 'stroke';
   alias?: string;
@@ -24,22 +25,26 @@ class Circle extends BaseShape {
   public x: number;
   public y: number;
   public radius: number;
+  public zIndex: number;
   public fillStyle: string | undefined;
   public drawType: 'fill' | 'stroke';
   public box: Region;
+  public createAt: number;
   
   static type = 'circle';
 
-  constructor({ x, y, radius, fillStyle, drawType, alias }: IInitialCircle) {
+  constructor({ x, y, radius, fillStyle, drawType, alias, zIndex }: IInitialCircle) {
     super();
     this.id = v4();
     this.alias = alias || this.id;
     this.x = x;
     this.y = y;
     this.radius = radius;
+    this.zIndex = zIndex || 0;
     this.fillStyle = fillStyle;
     this.drawType = drawType || 'fill';
     this.box = this.getBoundaryBox();
+    this.createAt = performance.now();
   }
 
   public setState (nextState: CirclePosition) {
@@ -47,6 +52,7 @@ class Circle extends BaseShape {
       _set(this, key, value);
     });
     this.box = this.getBoundaryBox();
+    this.createAt = performance.now();
   }
 
   public resize (now: { width: number; height: number; }, past: { width: number; height: number; }) {

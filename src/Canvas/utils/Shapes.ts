@@ -2,6 +2,7 @@ import _reduce from 'lodash/reduce';
 import _has from 'lodash/has';
 import _each from 'lodash/each';
 import _range from 'lodash/range';
+import _isNil from 'lodash/isNil';
 import { ICoordinates } from './Event';
 import { ShapeType, ShapePosition } from '../types';
 
@@ -388,8 +389,15 @@ export default class Shapes {
         _each(
           node.units,
           (unit: ShapeType) => {
-            // todo judge hit
-            targetResult = unit;
+            if (this.quadtree?.isContain({ x, y, w: 1, h: 1}, unit.box) ?? false) {
+              if (
+                _isNil(targetResult) ||
+                unit.zIndex > targetResult.zIndex ||
+                unit.createAt > targetResult.createAt
+              ) {
+                targetResult = unit;
+              }
+            }
           }
         );
         return targetResult;
