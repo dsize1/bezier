@@ -1,6 +1,5 @@
-import React, { useRef, useEffect, useState, useCallback, useMemo } from 'react';
+import React, { useRef, useEffect,  useCallback } from 'react';
 import { Button } from 'antd';
-import _throttle from 'lodash/throttle';
 import Canvas from '../../Canvas';
 import { IEvent } from '../../Canvas/utils/Event';
 import Circle from '../../Canvas/Shape/Circle';
@@ -41,58 +40,15 @@ const Quadtree = () => {
   const containerRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<Canvas>();
 
-  const onDrag = useMemo(
-    () =>_throttle((event: IEvent) => {
-      const shape = event.target;
-      const offset = event.offset;
-      const move = {
-        x: shape.x + offset.x,
-        y: shape.y + offset.y
-      };
-      if (canvasRef.current) {
-        canvasRef.current.change(shape.id, move);
-        canvasRef.current.clear();
-        shape.draw(canvasRef.current);
-      }
-    }, 200, { leading: false, trailing: true }), 
+  const onDrag = useCallback(
+    (event: IEvent) => {
+      canvasRef.current?.change(
+        event.target.id, 
+        event.offset
+      );
+    }, 
     []
   );
-
-  const onMouseEnter = (event: IEvent) => {
-    const shape = event.target;
-    if (canvasRef.current) {
-      shape.fillStyle = '#4169e1';
-      canvasRef.current.clear();
-      shape.draw(canvasRef.current);
-    }
-  };
-
-  const onMouseLeave = (event: IEvent) => {
-    const shape = event.target;
-    if (canvasRef.current) {
-      shape.fillStyle = '#d87093';
-      canvasRef.current.clear();
-      shape.draw(canvasRef.current);
-    }
-  };
-
-  const onMouseDown = (event: IEvent) => {
-    const shape = event.target;
-    if (canvasRef.current) {
-      shape.fillStyle = '#f0f';
-      canvasRef.current.clear();
-      shape.draw(canvasRef.current);
-    }
-  };
-
-  const onMouseUp = (event: IEvent) => {
-    const shape = event.target;
-    if (canvasRef.current) {
-      shape.fillStyle = '#4169e1';
-      canvasRef.current.clear();
-      shape.draw(canvasRef.current);
-    }
-  };
 
   const addRect = () => {
     const canvas = canvasRef.current;
@@ -109,10 +65,6 @@ const Quadtree = () => {
     const circleParams = getCircleParams(canvas.width, canvas.height);
     const circle = new Circle(circleParams);
     circle.on('drag', onDrag);
-    circle.on('mouseenter', onMouseEnter);
-    circle.on('mouseleave', onMouseLeave);
-    circle.on('mouseup', onMouseUp);
-    circle.on('mousedown', onMouseDown);
     canvas.append(circle.id, circle);
     canvas.test();
   };

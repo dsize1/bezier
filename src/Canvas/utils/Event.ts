@@ -246,6 +246,8 @@ export class EventBus {
         (startEvent) => {
           const startEventCoords = this.getCoords(startEvent, 'offset');
           const startEventTarget = this.shapes.getEventTarget(startEventCoords);
+          const initialX = startEventTarget?.x ?? 0;
+          const initialY = startEventTarget?.y ?? 0;
           const stop$ = merge(
             mouseUp$,
             mouseOut$
@@ -255,8 +257,8 @@ export class EventBus {
             takeUntil(stop$),
             skipUntil(timer(200)),
             map((moveEvent) => {
-              const moveX = moveEvent.clientX - startEvent.clientX;
-              const moveY = moveEvent.clientY - startEvent.clientY;
+              const moveX = moveEvent.clientX - startEvent.clientX + initialX;
+              const moveY = moveEvent.clientY - startEvent.clientY + initialY;
               const moveEventCoords = this.getCoords(moveEvent, 'offset');
               const moveEventTarget = this.shapes.getEventTarget(moveEventCoords);
               const isMoveOut =
